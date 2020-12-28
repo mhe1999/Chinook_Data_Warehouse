@@ -8,9 +8,11 @@ GO
 
 CREATE OR ALTER PROCEDURE SA_Genre
 AS
+
 alter table [StorageArea].[dbo].[SA_Track] drop constraint FkGenreId;
 TRUNCATE TABLE [StorageArea].[dbo].[SA_Genre];
 alter table [StorageArea].[dbo].[SA_Track] add constraint FkGenreId FOREIGN KEY([GenreId]) REFERENCES [StorageArea].[dbo].[SA_Genre]([GenreId]);
+
 INSERT INTO [StorageArea].[dbo].[SA_Genre]
 	([GenreId],[Name])
 SELECT [GenreId],[Name]
@@ -23,13 +25,21 @@ select * from [StorageArea].[dbo].[SA_Genre]
 -------------MediaType-------------
 ---------------------------------
 
-CREATE PROCEDURE SA_MediaType
+CREATE OR ALTER PROCEDURE SA_MediaType
 AS
+
+alter table [StorageArea].[dbo].[SA_Track] drop constraint FkMediaTypeId;
 TRUNCATE TABLE [StorageArea].[dbo].[SA_MediaType]
+alter table [StorageArea].[dbo].[SA_Track] add constraint FkMediaTypeId FOREIGN KEY([MediaTypeId]) REFERENCES [StorageArea].[dbo].[SA_MediaType]([MediaTypeId])
+
 INSERT INTO [StorageArea].[dbo].[SA_MediaType]
 	([MediaTypeId],[Name])
 SELECT [MediaTypeId], [Name]
 FROM [Chinook].[dbo].[MediaType]
+
+
+EXEC SA_MediaType
+
 
 CREATE OR ALTER PROCEDURE Storage_Rating_FirstLoad 
 AS
@@ -40,7 +50,9 @@ AS
 		FROM [Chinook].[dbo].[Rating]
 	
 
-
+---------------------------------
+-------------Rating-------------
+---------------------------------
 CREATE PROCEDURE Storage_Rating
 AS
 	DECLARE @EndDate date;
@@ -64,19 +76,28 @@ AS
 	
 
 
+---------------------------------
+-------------SA_Artist-------------
+---------------------------------
+CREATE OR ALTER PROCEDURE SA_Artist
+AS
+
+	alter table [StorageArea].[dbo].[SA_Album] drop constraint FkArtistId;
+	TRUNCATE TABLE [StorageArea].[dbo].[SA_Artist];
+	alter table [StorageArea].[dbo].[SA_Album] add constraint FkArtistId FOREIGN KEY([ArtistId]) REFERENCES [StorageArea].[dbo].[SA_Artist]([ArtistId]);
+	INSERT INTO [StorageArea].[dbo].[SA_Artist]
+		([ArtistId],[Name])
+	SELECT [ArtistId],[Name]
+	FROM [Chinook].[dbo].[Artist]
+
+EXEC SA_Artist
+
+select * from [StorageArea].[dbo].[SA_Artist]
+
 
 ---------------------------------
 -------------playback------------
 ---------------------------------
-CREATE TABLE [StorageArea].[dbo].[SA_Playback](
-	[PlayId] BIGINT PRIMARY KEY,
-	[CustomerId] INT,
-	[TrackId] INT,
-	[PlayDate] DATETIME,
-	FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer](Id),      ---*
-	FOREIGN KEY(TrackId) REFERENCES [StorageArea].[dbo].[SA_Track](Id),          ---*
-);
-
 
 CREATE PROCEDURE SA_Playback_FirstLoad
 AS
@@ -108,6 +129,32 @@ WHILE @CurrDate <= @EndDate
 	SET @CurrDate = DATEADD(day, 1, @Currdate)
 END
 
+
+
+---------------------------------
+-------------Track-------------
+---------------------------------
+
+------------------------------------------
+
+---------------------------------
+-------------Employee-------------
+---------------------------------
+
+-----------------------------------------
+
+---------------------------------
+-------------Customer-------------
+---------------------------------
+
+-----------------------------------------
+
+
+---------------------------------
+-------------Album-------------
+---------------------------------
+
+-----------------------------------------
 
 ---------------------------------
 -------------Invoice-------------
@@ -144,6 +191,10 @@ WHILE @CurrDate <= @EndDate
 
 	SET @CurrDate = DATEADD(day, 1, @Currdate)
 END
+
+
+
+
 
 
 
