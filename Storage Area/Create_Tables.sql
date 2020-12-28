@@ -4,6 +4,7 @@ GO
 
 USE [StorageArea]
 GO
+
 ----CREATE TABLES
 CREATE TABLE [dbo].[SA_Artist]
 (
@@ -121,6 +122,8 @@ CREATE TABLE [dbo].[SA_Rating]
 
 	CONSTRAINT FkTrackIdR FOREIGN KEY(TrackId) REFERENCES [StorageArea].[dbo].[SA_Track]([TrackId]),  
 	CONSTRAINT FkCustomerIdR FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
+);
+
 );
 
 

@@ -1,3 +1,7 @@
+USE [Chinook];
+GO
+
+
 CREATE TABLE [dbo].[Rating]
 (
 	[CustomerId] INT NOT NULL,
@@ -28,3 +32,6 @@ ADD JoinDate Date DEFAULT '2013-01-01' not null;
 
 ALTER TABLE Track
 ADD AddDate Date DEFAULT '2013-01-01' not null;
+
+
+select * from Customer
