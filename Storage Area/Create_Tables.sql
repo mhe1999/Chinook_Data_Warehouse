@@ -124,7 +124,7 @@ CREATE TABLE [dbo].[SA_Rating]
 	CONSTRAINT FkCustomerIdR FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
 );
 
-);
+
 
 
 
