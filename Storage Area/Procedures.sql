@@ -80,6 +80,9 @@ EXEC SA_AlbumProcedure
 select *
 from [StorageArea].[dbo].[SA_Album]
 
+select *
+from [Chinook].[dbo].[Album]
+
 
 
 
@@ -168,17 +171,53 @@ EXECUTE SA_Customer_incremental
 -------------Track-------------
 ---------------------------------
 
-------------------------------------------
+------firstload---------
+CREATE OR ALTER PROCEDURE SA_Track_firstload
+AS
+	alter table [StorageArea].[dbo].[SA_Playback] drop constraint FkTrackId;
+	alter table [StorageArea].[dbo].[SA_Rating] drop constraint FkTrackIdR;
+	
+	TRUNCATE TABLE [StorageArea].[dbo].[SA_Track];
+
+	alter table [StorageArea].[dbo].[SA_Playback] add CONSTRAINT FkTrackId FOREIGN KEY(TrackId) REFERENCES [StorageArea].[dbo].[SA_Track](TrackId)
+	alter table [StorageArea].[dbo].[SA_Rating] add CONSTRAINT FkTrackIdR FOREIGN KEY (TrackId) REFERENCES [StorageArea].[dbo].[SA_Track](TrackId)
+
+	INSERT INTO [StorageArea].[dbo].[SA_Track]
+		([TrackId], [Name], [AlbumId], [MediaTypeId], [GenreId], [Composer], [Milliseconds], [Bytes],[UnitPrice], AddDate)
+	SELECT [TrackId], [Name], [AlbumId], [MediaTypeId], [GenreId], [Composer], [Milliseconds], [Bytes],[UnitPrice], AddDate
+	FROM [Chinook].[dbo].[Track]
+
+EXECUTE SA_Track_firstload
+
+SELECT * FROM [StorageArea].[dbo].[SA_Track]
 
 
+----- incremental --------
 
------------------------------------------
+CREATE PROCEDURE SA_Track_incremental
+AS
+	DECLARE @EndDate date;
+	DECLARE @StartDate date;
+	DECLARE @CurrDate date;
 
------------------------------------------
+	SET @EndDate = (SELECT MAX(AddDate)
+	FROM [Chinook].[dbo].[Track])
+	SET @StartDate = (SELECT MAX(AddDate)
+	FROM [StorageArea].[dbo].[SA_Track]);
+	SET @CurrDate = DATEADD(day, 1, @StartDate);
+
+	WHILE @CurrDate <= @EndDate
+		BEGIN
+			INSERT INTO [StorageArea].[dbo].[SA_Track]
+				([TrackId], [Name], [AlbumId], [MediaTypeId], [GenreId], [Composer], [Milliseconds], [Bytes],[UnitPrice], AddDate)
+			SELECT [TrackId], [Name], [AlbumId], [MediaTypeId], [GenreId], [Composer], [Milliseconds], [Bytes],[UnitPrice], AddDate
+			FROM [Chinook].[dbo].Track
+			WHERE AddDate = @CurrDate
+			SET @CurrDate = DATEADD(day, 1, @Currdate)
+		END
 
 
-
------------------------------------------
+EXECUTE SA_Track_incremental
 
 
 
