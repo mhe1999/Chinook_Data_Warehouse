@@ -111,7 +111,7 @@ FROM [StorageArea].[dbo].[SA_Employee]
 -------------Customer-------------
 ---------------------------------
 
-
+------firstload---------
 CREATE OR ALTER PROCEDURE SA_Customer_firstload
 AS
 	alter table [StorageArea].[dbo].[SA_Playback] drop constraint FkCustomerId;
@@ -133,6 +133,32 @@ EXECUTE SA_Customer_firstload
 SELECT * FROM [StorageArea].[dbo].[SA_Customer]
 
 
+----- incremental --------
+
+CREATE PROCEDURE SA_Customer_incremental
+AS
+	DECLARE @EndDate date;
+	DECLARE @StartDate date;
+	DECLARE @CurrDate date;
+
+	SET @EndDate = (SELECT MAX(JoinDate)
+	FROM [Chinook].[dbo].[Customer])
+	SET @StartDate = (SELECT MAX(JoinDate)
+	FROM [StorageArea].[dbo].[SA_Customer]);
+	SET @CurrDate = DATEADD(day, 1, @StartDate);
+
+	WHILE @CurrDate <= @EndDate
+		BEGIN
+			INSERT INTO [StorageArea].[dbo].[SA_Customer]
+				([CustomerId], [FirstName], [LastName], [Company], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [SupportRepId], [JoinDate])
+			SELECT [CustomerId], [FirstName], [LastName], [Company], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [SupportRepId], [JoinDate]
+			FROM [Chinook].[dbo].[Customer]
+			WHERE JoinDate = @CurrDate
+			SET @CurrDate = DATEADD(day, 1, @Currdate)
+		END
+
+
+EXECUTE SA_Customer_incremental
 
 
 
