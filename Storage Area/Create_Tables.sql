@@ -111,7 +111,7 @@ CREATE TABLE [StorageArea].[dbo].[SA_Playback](
 );
 
 
-CREATE TABLE [dbo].[SA_Rating]
+CREATE  TABLE [StorageArea].[dbo].[SA_Rating]
 (
 	[CustomerId] INT,---*
 	[TrackId] INT,---*
@@ -123,8 +123,5 @@ CREATE TABLE [dbo].[SA_Rating]
 	CONSTRAINT FkTrackIdR FOREIGN KEY(TrackId) REFERENCES [StorageArea].[dbo].[SA_Track]([TrackId]),  
 	CONSTRAINT FkCustomerIdR FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
 );
-
-
-
 
 

@@ -82,21 +82,71 @@ from [StorageArea].[dbo].[SA_Album]
 
 
 
+
+---------------------------------
+-------------Employee-------------
+---------------------------------
+CREATE OR ALTER PROCEDURE SA_EmployeeProcedure
+AS
+	
+	alter table [StorageArea].[dbo].[SA_Customer] drop constraint FkSupportRepId;
+	alter table [StorageArea].[dbo].[SA_Employee] drop constraint FkReportsTo;
+	TRUNCATE TABLE [StorageArea].[dbo].[SA_Employee];
+	alter table [StorageArea].[dbo].[SA_Customer] add CONSTRAINT FkSupportRepId FOREIGN KEY([SupportRepId]) REFERENCES [StorageArea].[dbo].[SA_Employee]([EmployeeId])
+	alter table [StorageArea].[dbo].[SA_Employee] add CONSTRAINT FkReportsTo FOREIGN KEY ([ReportsTo]) REFERENCES [StorageArea].[dbo].[SA_Employee]([EmployeeId])
+
+	INSERT INTO [StorageArea].[dbo].[SA_Employee]
+		([EmployeeId], [FirstName], [LastName], [Title], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [ReportsTo], [BirthDate], [HireDate])
+	SELECT [EmployeeId], [FirstName], [LastName], [Title], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [ReportsTo], [BirthDate], [HireDate]
+	FROM [Chinook].[dbo].[Employee]
+
+
+
+EXECUTE SA_EmployeeProcedure
+SELECT *
+FROM [StorageArea].[dbo].[SA_Employee]
+
+
+---------------------------------
+-------------Customer-------------
+---------------------------------
+
+
+CREATE OR ALTER PROCEDURE SA_Customer_firstload
+AS
+	alter table [StorageArea].[dbo].[SA_Playback] drop constraint FkCustomerId;
+	alter table [StorageArea].[dbo].[SA_Rating] drop constraint FkCustomerIdR;
+	alter table [StorageArea].[dbo].[SA_Customer] drop constraint FkSupportRepId;
+	
+	TRUNCATE TABLE [StorageArea].[dbo].[SA_Customer];
+	alter table [StorageArea].[dbo].[SA_Playback] add CONSTRAINT FkCustomerId FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
+	alter table [StorageArea].[dbo].[SA_Rating] add CONSTRAINT FkCustomerIdR FOREIGN KEY (CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
+	alter table [StorageArea].[dbo].[SA_Customer] add CONSTRAINT FkSupportRepId FOREIGN KEY([SupportRepId]) REFERENCES [StorageArea].[dbo].[SA_Employee]([EmployeeId])
+
+	INSERT INTO [StorageArea].[dbo].[SA_Customer]
+		([CustomerId], [FirstName], [LastName], [Company], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [SupportRepId], [JoinDate])
+	SELECT [CustomerId], [FirstName], [LastName], [Company], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [SupportRepId], [JoinDate]
+	FROM [Chinook].[dbo].[Customer]
+
+EXECUTE SA_Customer_firstload
+
+SELECT * FROM [StorageArea].[dbo].[SA_Customer]
+
+
+
+
+
+
+
 ---------------------------------
 -------------Track-------------
 ---------------------------------
 
 ------------------------------------------
 
----------------------------------
--------------Employee-------------
----------------------------------
+
 
 -----------------------------------------
-
----------------------------------
--------------Customer-------------
----------------------------------
 
 -----------------------------------------
 
