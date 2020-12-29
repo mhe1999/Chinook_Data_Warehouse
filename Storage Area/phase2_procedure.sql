@@ -40,48 +40,46 @@ WHILE @CurrDate <= @EndDate
 END
 
 
-
-
-
-
-
 ---------------------------------
--------------Rating-------------
----------------------------------
-
-CREATE OR ALTER PROCEDURE Storage_Rating_FirstLoad
+-------------playback------------
+--------------------------------- 
+GO
+CREATE PROCEDURE SA_Playback_FirstLoad
 AS
-TRUNCATE TABLE [StorageArea].[dbo].[SA_Rating]
+	TRUNCATE TABLE [StorageArea].[dbo].[SA_Playback]
+	INSERT INTO [StorageArea].[dbo].[SA_Playback]
+		([PlayId],[CustomerId], [TrackId], [PlayDate])
+	SELECT [PlayId], [CustomerId], [TrackId], [PlayDate]
+	FROM [Chinook].[dbo].[play]
 
-INSERT INTO [StorageArea].[dbo].[SA_Rating]
-    ([CustomerId], [TrackId], [ScoreDate], [Score])
---What if BlowUp somewhere?
-SELECT [CustomerId], [TrackId], [ScoreDate], [Score]
-FROM [Chinook].[dbo].[Rating]
-
-
-CREATE PROCEDURE Storage_Rating
+GO
+CREATE PROCEDURE SA_Playback
 AS
-DECLARE @EndDate date;
-DECLARE @StartDate date;
-DECLARE @CurrDate date;
+	DECLARE @EndDate date;
+	DECLARE @StartDate date;
+	DECLARE @CurrDate date;
 
-SET @EndDate = (SELECT MAX(ScoreDate)
-FROM [Chinook].[dbo].[Rating])
-SET @StartDate = (SELECT MAX(ScoreDate)
-FROM [dbo].[Rating_Storage]);
-SET @CurrDate = DATEADD(day, 1, @StartDate);
+	SET @EndDate = (SELECT MAX(PlayDate)
+	FROM [Chinook].[dbo].[play])
+	SET @StartDate = (SELECT MAX(ScoreDate)
+	FROM [StorageArea].[dbo].[SA_Playback]);
+	SET @CurrDate = DATEADD(day, 1, @StartDate);
 
-WHILE @CurrDate <= @EndDate
-	BEGIN
+	WHILE @CurrDate <= @EndDate
+		BEGIN
+		INSERT INTO [StorageArea].[dbo].[SA_Playback]
+			([CustomerId], [TrackId], [ScoreDate], [Score])
+		SELECT [CustomerId], [TrackId], [ScoreDate], [Score]
+		FROM [Chinook].[dbo].[play]
+		WHERE PlayDate = @CurrDate
+		SET @CurrDate = DATEADD(day, 1, @Currdate)
+	END
+	
 
-    INSERT INTO [dbo].[Rating_Storage]
-        ([CustomerId], [TrackId], [ScoreDate], [Score])
-    SELECT [CustomerId], [TrackId], [ScoreDate], [Score]
-    FROM [Chinook].[dbo].[Rating]
-    WHERE ScoreDate = @CurrDate
 
-    SET @CurrDate = DATEADD(day, 1, @Currdate)
-END
+
+
+
+
 	
 
