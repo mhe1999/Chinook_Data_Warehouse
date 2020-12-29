@@ -245,3 +245,45 @@ CREATE OR ALTER PROCEDURE SA_Rating_incremental
 	END
 
 
+---------------------------------
+-------------playback------------
+---------------------------------
+GO
+CREATE OR ALTER PROCEDURE SA_Playback_FirstLoad
+AS
+
+TRUNCATE TABLE [StorageArea].[dbo].[SA_Playback]
+INSERT INTO [StorageArea].[dbo].[SA_Playback]
+	([PlayId],[CustomerId], [TrackId], [PlayDate])
+SELECT [PlayId], [CustomerId], [TrackId], [PlayDate]
+FROM [Chinook].[dbo].[OnlinePlayback]
+
+
+--EXECUTE SA_Playback_FirstLoad
+
+
+
+GO
+CREATE OR ALTER PROCEDURE SA_Playback_incremental
+AS
+DECLARE @EndDate date;
+DECLARE @StartDate date;
+DECLARE @CurrDate date;
+
+SET @EndDate = (SELECT MAX(PlayDate)
+FROM [Chinook].[dbo].[OnlinePlayback])
+SET @StartDate = (SELECT MAX(PlayDate)
+FROM [StorageArea].[dbo].[SA_Playback]);
+SET @CurrDate = DATEADD(day, 1, @StartDate);
+
+WHILE @CurrDate <= @EndDate
+	BEGIN
+	INSERT INTO [StorageArea].[dbo].[SA_Playback]
+		([PlayId],[CustomerId], [TrackId], [PlayDate])
+	SELECT [PlayId], [CustomerId], [TrackId], [PlayDate]
+	FROM [Chinook].[dbo].[OnlinePlayback]
+	WHERE PlayDate = @CurrDate
+	SET @CurrDate = DATEADD(day, 1, @Currdate)
+END
+
+--EXECUTE SA_Playback_incremental
