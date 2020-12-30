@@ -82,19 +82,20 @@ AS
 ---------------------------------
 -------------Employee-------------
 ---------------------------------
+
 GO
 CREATE OR ALTER PROCEDURE SA_EmployeeProcedure
 AS
-	ALTER TABLE [StorageArea].[dbo].[SA_Customer] DROP CONSTRAINT FkSupportRepId;
+	ALTER TABLE [StorageArea].[dbo].[SA_Customer] DROP CONSTRAINT FkToSupportRepId;
+
 	TRUNCATE TABLE [StorageArea].[dbo].[SA_Employee];
-	
+
 	INSERT INTO [StorageArea].[dbo].[SA_Employee]
 		([EmployeeId], [FirstName], [LastName], [Title], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [ReportsTo], [BirthDate], [HireDate])
 	SELECT [EmployeeId], [FirstName], [LastName], [Title], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [ReportsTo], [BirthDate], [HireDate]
 	FROM [Chinook].[dbo].[Employee]
 
-	ALTER TABLE [StorageArea].[dbo].[SA_Customer] ADD CONSTRAINT FkSupportRepId FOREIGN KEY([SupportRepId]) REFERENCES [StorageArea].[dbo].[SA_Employee]([EmployeeId])
-
+ALTER TABLE [StorageArea].[dbo].[SA_Customer] ADD CONSTRAINT FkToSupportRepId FOREIGN KEY([SupportRepId]) REFERENCES [StorageArea].[dbo].[SA_Employee]([EmployeeId])
 
 --EXECUTE SA_EmployeeProcedure
 --SELECT *
@@ -116,9 +117,8 @@ AS
 		([CustomerId], [FirstName], [LastName], [Company], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [SupportRepId], [JoinDate])
 	SELECT [CustomerId], [FirstName], [LastName], [Company], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [SupportRepId], [JoinDate]
 	FROM [Chinook].[dbo].[Customer]
-
-	ALTER TABLE [StorageArea].[dbo].[SA_Playback] ADD CONSTRAINT FkCustomerId FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
 	ALTER TABLE [StorageArea].[dbo].[SA_Rating] ADD CONSTRAINT FkCustomerIdR FOREIGN KEY (CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
+	ALTER TABLE [StorageArea].[dbo].[SA_Playback] ADD CONSTRAINT FkCustomerId FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
 
 
 --EXECUTE SA_Customer_firstload
@@ -159,7 +159,7 @@ AS
 GO
 CREATE OR ALTER PROCEDURE SA_Track_firstload
 AS
-	ALTER TABLE [StorageArea].[dbo].[SA_Playback] DROP CONSTRAINT FkTrackId;
+	ALTER TABLE [StorageArea].[dbo].[SA_Playback] DROP CONSTRAINT FkTrackToplayback;
 	ALTER TABLE [StorageArea].[dbo].[SA_Rating] DROP CONSTRAINT FkTrackIdR;
 	TRUNCATE TABLE [StorageArea].[dbo].[SA_Track];
 
@@ -167,8 +167,7 @@ AS
 		([TrackId], [Name], [AlbumId], [MediaTypeId], [GenreId], [Composer], [Milliseconds], [Bytes],[UnitPrice], AddDate)
 	SELECT [TrackId], [Name], [AlbumId], [MediaTypeId], [GenreId], [Composer], [Milliseconds], [Bytes],[UnitPrice], AddDate
 	FROM [Chinook].[dbo].[Track]
-
-	ALTER TABLE [StorageArea].[dbo].[SA_Playback] ADD CONSTRAINT FkTrackId FOREIGN KEY(TrackId) REFERENCES [StorageArea].[dbo].[SA_Track](TrackId)
+	ALTER TABLE [StorageArea].[dbo].[SA_Playback] ADD CONSTRAINT FkTrackToplayback FOREIGN KEY(TrackId) REFERENCES [StorageArea].[dbo].[SA_Track](TrackId)
 	ALTER TABLE [StorageArea].[dbo].[SA_Rating] ADD CONSTRAINT FkTrackIdR FOREIGN KEY (TrackId) REFERENCES [StorageArea].[dbo].[SA_Track](TrackId)
 
 
@@ -229,13 +228,13 @@ CREATE OR ALTER PROCEDURE SA_Rating_incremental
 	SET @EndDate = (SELECT MAX(ScoreDate)
 	FROM [Chinook].[dbo].[Rating])
 	SET @StartDate = (SELECT MAX(ScoreDate)
-	FROM [dbo].[Rating_Storage]);
+	FROM [StorageArea].[dbo].[SA_Rating]);
 	SET @CurrDate = DATEADD(day, 1, @StartDate);
 
 	WHILE @CurrDate <= @EndDate
 		BEGIN
 
-		INSERT INTO [dbo].[Rating_Storage]
+		INSERT INTO [StorageArea].[dbo].[SA_Rating]
 			([CustomerId], [TrackId], [ScoreDate], [Score])
 		SELECT [CustomerId], [TrackId], [ScoreDate], [Score]
 		FROM [Chinook].[dbo].[Rating]
@@ -260,7 +259,6 @@ FROM [Chinook].[dbo].[OnlinePlayback]
 
 
 --EXECUTE SA_Playback_FirstLoad
-
 
 
 GO
