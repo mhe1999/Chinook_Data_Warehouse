@@ -1,3 +1,5 @@
+USE [DataWarehouse]
+GO
 CREATE OR ALTER PROCEDURE ETL_DimensionGenre
 AS
 BEGIN
@@ -29,11 +31,29 @@ BEGIN
     FROM [DataWarehouse].[dbo].[Dim_Artist])
 END
 
+GO
+CREATE OR ALTER PROCEDURE ETL_DimensionLocation
+AS
+BEGIN
+  INSERT INTO [DataWarehouse].[dbo].[Dim_Location]
+ SELECT DISTINCT City, Country
+FROM [StorageArea].[dbo].[SA_Customer] AS SAC
+WHERE NOT exists (SELECT DISTINCT City, Country
+                  FROM [DataWarehouse].[dbo].[Dim_Location] AS DWL
+                  WHERE
+                  DWL.City = [SAC].City AND DWL.Country = SAC.Country)
+
+END
+
+
+
 
 EXECUTE ETL_DimensionGenre
 EXECUTE ETL_DimensionMediaType
 EXECUTE ETL_DimensionArtist
+EXECUTE ETL_DimensionLocation
 
 SELECT * FROM [DataWarehouse].[dbo].[Dim_Genre]
 SELECT * FROM [DataWarehouse].[dbo].[Dim_MediaType]
 SELECT * FROM [DataWarehouse].[dbo].[Dim_Artist]
+SELECT * FROM [DataWarehouse].[dbo].[Dim_Location]
