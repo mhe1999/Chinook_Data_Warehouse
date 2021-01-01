@@ -10,7 +10,7 @@ BEGIN
   FROM [DataWarehouse].[dbo].[Dim_Genre])
 END
 
-
+GO
 CREATE OR ALTER PROCEDURE ETL_DimensionMediaType
 AS
 BEGIN
@@ -20,7 +20,7 @@ BEGIN
     WHERE MediaTypeId not in (SELECT MediaTypeId
     FROM [DataWarehouse].[dbo].[Dim_MediaType])
 END
-
+GO
 CREATE OR ALTER PROCEDURE ETL_DimensionArtist
 AS
 BEGIN

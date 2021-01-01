@@ -8,8 +8,8 @@ AS
 	EXEC [StorageArea].[dbo].SA_AlbumProcedure
 	EXEC [StorageArea].[dbo].SA_EmployeeProcedure
 
-select * from SA_Playback
 
+GO
 CREATE OR ALTER PROCEDURE SA_Main_Firstload
 AS
 EXEC SA_Main
@@ -18,11 +18,9 @@ EXEC [StorageArea].[dbo].SA_Track_firstload
 EXEC [StorageArea].[dbo].SA_Rating_firstload
 EXEC [StorageArea].[dbo].SA_playback_Firstload
 
-EXEC SA_Main_Firstload
 
 
-
-
+GO
 CREATE OR ALTER PROCEDURE SA_Main_Incremental
 AS
 EXEC SA_Main
@@ -31,4 +29,6 @@ EXECUTE SA_Playback_incremental
 EXECUTE SA_Rating_incremental
 EXECUTE SA_Customer_incremental
 
+
+EXEC SA_Main_Firstload
 EXECUTE SA_Main_Incremental
