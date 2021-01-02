@@ -271,14 +271,23 @@ END
 
 
 
-
+USE [DataWarehouse]
+GO
 --- insert data to dimension date
+bulk INSERT [DataWarehouse].[dbo].[Dim_Date]
+FROM '/home/mohammadsgh/Desktop/Date.txt'
+WITH (
+    fieldterminator = '\t',
+    ROWTERMINATOR= '\n'
+)
+
 bulk INSERT [DataWarehouse].[dbo].[Dim_Date]
 FROM '/home/mohammadsgh/Desktop/changed1.csv'
 WITH (
     fieldterminator = ',',
     ROWTERMINATOR= '\n'
 )
+
 
 
 EXECUTE ETL_DimensionGenre
