@@ -67,7 +67,6 @@ CREATE TABLE dbo.FactACCOnlinePlayback --ACC Fact table
     ArtistID INT,
     LocationID INT,
     MediaTypeID INT,
-    NumberOfTracks INT,
     PRIMARY KEY(TrackID, LocationID),
 
     -- measures
@@ -86,3 +85,5 @@ CREATE TABLE dbo.FactACCOnlinePlayback --ACC Fact table
     FOREIGN KEY(MediaTypeID) REFERENCES [dbo].[Dim_MediaType](MediaTypeId),
 
 );
+
+
