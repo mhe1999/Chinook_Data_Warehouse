@@ -142,3 +142,31 @@ CREATE TABLE [dbo].[Dim_Date]
     [PersianCalendarSemester] [int] NULL,
 )
 
+CREATE TABLE [dbo].[Dim_Employee]
+(
+    [Id] BIGINT PRIMARY KEY,
+    [EmployeeId] INT NOT NULL,
+    [LastName] NVARCHAR(30) NOT NULL,
+    [FirstName] NVARCHAR(30) NOT NULL,
+    [Title] NVARCHAR(40),
+    [ReportsTo] INT,
+    [BirthDate] DATETIME,
+    [HireDate] DATETIME,
+    [Address] NVARCHAR(70),
+    [City] NVARCHAR(50),
+    [State] NVARCHAR(50),
+    [Country] NVARCHAR(50),
+    [PostalCode] NVARCHAR(10),
+    [Phone] NVARCHAR(24),
+    [Fax] NVARCHAR(24),
+    [Email] NVARCHAR(70),
+    ----SCD2
+    [Start_Date_ReportTo] DATE,
+    [End_Date_ReportTo] DATE,
+    [Current_Flag_lReportTo] bit,
+
+    [Start_Date_Title] DATE,
+	[End_Date_Title] DATE,
+	[Current_Flag_Title] bit
+);
+
