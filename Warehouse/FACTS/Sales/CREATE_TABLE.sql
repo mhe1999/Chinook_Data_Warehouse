@@ -1,5 +1,8 @@
 USE [DataWarehouse]
 GO
+DROP TABLE FactTransactionSale
+DROP TABLE FactDailySnapshotSale
+DROP TABLE FactACCSale
 
 CREATE TABLE dbo.FactTransactionSale
 (
@@ -20,7 +23,7 @@ CREATE TABLE dbo.FactTransactionSale
     ---Measures
     Price NUMERIC(10,2),
 
-
+/*
     FOREIGN KEY(TrackID) REFERENCES [DataWarehouse].[dbo].[Dim_Track](Id),
     FOREIGN KEY(AlbumID) REFERENCES [DataWarehouse].[dbo].[Dim_Album](AlbumId),
     FOREIGN KEY(GenreID) REFERENCES [DataWarehouse].[dbo].[Dim_Genre](GenreId),
@@ -29,7 +32,7 @@ CREATE TABLE dbo.FactTransactionSale
     FOREIGN KEY(MediaTypeID) REFERENCES [DataWarehouse].[dbo].[Dim_MediaType](MediaTypeId),
     FOREIGN KEY(CustomerID) REFERENCES [DataWarehouse].[dbo].[Dim_Customer](Id),
     FOREIGN KEY(TranDate) REFERENCES [DataWarehouse].[dbo].[Dim_Date](TimeKey),
-	FOREIGN KEY(SupportID) REFERENCES [DataWarehouse].[dbo].[Dim_Employee]([Id])
+	FOREIGN KEY(SupportID) REFERENCES [DataWarehouse].[dbo].[Dim_Employee]([Id]) */
 );
 
 
@@ -52,6 +55,7 @@ CREATE TABLE dbo.FactDailySnapshotSale
     MaxNum int,
     MinNum int,
 
+	/*
     FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
     FOREIGN KEY(TrackID) REFERENCES [dbo].[Dim_Track](Id),
     FOREIGN KEY(AlbumID) REFERENCES [dbo].[Dim_Album](AlbumId),
@@ -60,7 +64,7 @@ CREATE TABLE dbo.FactDailySnapshotSale
     FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
     FOREIGN KEY(MediaTypeID) REFERENCES [dbo].[Dim_MediaType](MediaTypeId),
     FOREIGN KEY(TranDate) REFERENCES [dbo].[Dim_date](TimeKey),-- date dimension must be create
-	FOREIGN KEY(SupportID) REFERENCES [DataWarehouse].[dbo].[Dim_Employee]([Id])
+	FOREIGN KEY(SupportID) REFERENCES [DataWarehouse].[dbo].[Dim_Employee]([Id])*/
 
 );
 
@@ -85,6 +89,7 @@ CREATE TABLE dbo.FactACCSale
     MaxNum int,
     MinNum int,
 
+/*
     FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
     FOREIGN KEY(TrackID) REFERENCES [dbo].[Dim_Track](Id),
     FOREIGN KEY(AlbumID) REFERENCES [dbo].[Dim_Album](AlbumId),
@@ -92,5 +97,5 @@ CREATE TABLE dbo.FactACCSale
     FOREIGN KEY(ArtistID) REFERENCES [dbo].[Dim_Artist](ArtistId),
     FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
     FOREIGN KEY(MediaTypeID) REFERENCES [dbo].[Dim_MediaType](MediaTypeId),
-	FOREIGN KEY(SupportID) REFERENCES [DataWarehouse].[dbo].[Dim_Employee]([Id])
+	FOREIGN KEY(SupportID) REFERENCES [DataWarehouse].[dbo].[Dim_Employee]([Id])*/
 );
