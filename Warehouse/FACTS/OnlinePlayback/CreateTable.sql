@@ -1,6 +1,9 @@
 USE [DataWarehouse]
 GO
 
+DROP Table [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]
+DROP Table [DataWarehouse].[dbo].FactDailySnapshotOnlinePlayback
+DROP Table [DataWarehouse].[dbo].FactACCOnlinePlayback
 
 CREATE TABLE [DataWarehouse].[dbo].[FactTransactionOnlinePlayback](
 
@@ -25,7 +28,7 @@ CREATE TABLE [DataWarehouse].[dbo].[FactTransactionOnlinePlayback](
 --    FOREIGN KEY(MediaTypeID) REFERENCES [DataWarehouse].[dbo].[Dim_MediaType](MediaTypeId),
 --    FOREIGN KEY(CustomerID) REFERENCES [DataWarehouse].[dbo].[Dim_Customer](Id),
 ----    FOREIGN KEY(CustomerIDN) REFERENCES [DataWarehouse].[dbo].[Dim_Customer](CustomerId),
-    FOREIGN KEY(TranDate) REFERENCES [DataWarehouse].[dbo].[Dim_Date](TimeKey)
+--    FOREIGN KEY(TranDate) REFERENCES [DataWarehouse].[dbo].[Dim_Date](TimeKey)
 );
 
 CREATE TABLE dbo.FactDailySnapshotOnlinePlayback --in this periodic table we investigate **Track** statistics
