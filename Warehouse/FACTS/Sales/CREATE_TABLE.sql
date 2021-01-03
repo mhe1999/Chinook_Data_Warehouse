@@ -47,7 +47,7 @@ CREATE TABLE dbo.FactDailySnapshotSale
     MediaTypeID INT,
     TranDate INT,
     SupportID BIGINT,
-    PRIMARY KEY(TrackID, LocationID, TranDate),
+    PRIMARY KEY(TrackID, LocationID, TranDate,SupportID),
     ---Measures
     sumSaletoday NUMERIC(15,2),
     numberofSaleToday int,
@@ -79,7 +79,7 @@ CREATE TABLE dbo.FactACCSale
     LocationID INT,
     MediaTypeID INT,
     SupportID BIGINT,
-    PRIMARY KEY(TrackID, LocationID),
+    PRIMARY KEY(TrackID, LocationID,SupportID),
 
     ---Measures
 
