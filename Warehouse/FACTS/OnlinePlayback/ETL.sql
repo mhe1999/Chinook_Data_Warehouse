@@ -6,11 +6,11 @@ CREATE OR ALTER PROCEDURE ETL_OP_firstLoadTransFact
 AS
 BEGIN
 
-TRUNCATE TABLE [DataWarehouse].[dbo].[FactTransactionOnlinePlayback];
+--TRUNCATE TABLE [DataWarehouse].[dbo].[FactTransactionOnlinePlayback];
 
     INSERT INTO [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]
-    ( [CustomerID] ,[TrackID], [AlbumID], [GenreID], [ArtistID], [LocationID], [MediaTypeID],[TranDate])
-SELECT DWC.Id, DWT.[Id], DWAL.[AlbumId], DWG.[GenreId], [DWAR].[ArtistId], [DWL].Id, [DWM].[MediaTypeId], DWD.TimeKey
+    ( [CustomerID], [CustomerIDN], [TrackID], [TrackIDN], [AlbumID], [GenreID], [ArtistID], [LocationID], [MediaTypeID],[TranDate])
+SELECT DWC.Id, DWC.CustomerId, DWT.[Id], DWT.TrackId, DWAL.[AlbumId], DWG.[GenreId], [DWAR].[ArtistId], [DWL].Id, [DWM].[MediaTypeId], DWD.TimeKey
 FROM [StorageArea].[dbo].[SA_Playback] as SAP INNER JOIN [DataWarehouse].[dbo].[Dim_Customer] as DWC ON SAP.CustomerId = DWC.CustomerId AND DWC.Current_Flag_SupportRepId = 1
                                               INNER JOIN [DataWarehouse].[dbo].[Dim_Track] as DWT ON SAP.TrackId = DWT.TrackId AND DWT.Current_Flag_UnitPrice = 1
                                               INNER JOIN [DataWarehouse].[dbo].[Dim_Album] as DWAL ON DWAL.AlbumId = DWT.AlbumId 
@@ -41,8 +41,8 @@ BEGIN
         BEGIN
 
             INSERT INTO [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]
-                ( [CustomerID] ,[TrackID], [AlbumID], [GenreID], [ArtistID], [LocationID], [MediaTypeID],[TranDate])
-            SELECT DWC.Id, DWT.[Id], DWAL.[AlbumId], DWG.[GenreId], [DWAR].[ArtistId], [DWL].Id, [DWM].[MediaTypeId], DWD.TimeKey
+                ( [CustomerID], [CustomerIDN], [TrackID], [TrackIDN], [AlbumID], [GenreID], [ArtistID], [LocationID], [MediaTypeID],[TranDate])
+            SELECT DWC.Id, DWC.CustomerId,DWT.[Id], DWT.TrackId, DWAL.[AlbumId], DWG.[GenreId], [DWAR].[ArtistId], [DWL].Id, [DWM].[MediaTypeId], DWD.TimeKey
             FROM [StorageArea].[dbo].[SA_Playback] as SAP INNER JOIN [DataWarehouse].[dbo].[Dim_Customer] as DWC ON SAP.CustomerId = DWC.CustomerId AND DWC.Current_Flag_SupportRepId = 1
                 INNER JOIN [DataWarehouse].[dbo].[Dim_Track] as DWT ON SAP.TrackId = DWT.TrackId AND DWT.Current_Flag_UnitPrice = 1
                 INNER JOIN [DataWarehouse].[dbo].[Dim_Album] as DWAL ON DWAL.AlbumId = DWT.AlbumId
