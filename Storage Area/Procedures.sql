@@ -5,7 +5,6 @@ GO
 ---------------------------------
 CREATE OR ALTER PROCEDURE SA_GenreProcedure
 AS
-	ALTER TABLE [StorageArea].[dbo].[SA_Track] DROP CONSTRAINT FkGenreId;
 	TRUNCATE TABLE [StorageArea].[dbo].[SA_Genre];
 
 	INSERT INTO [StorageArea].[dbo].[SA_Genre]
@@ -13,7 +12,6 @@ AS
 	SELECT [GenreId],[Name]
 	FROM [Chinook].[dbo].[Genre]
 
-	ALTER TABLE [StorageArea].[dbo].[SA_Track] ADD CONSTRAINT FkGenreId FOREIGN KEY([GenreId]) REFERENCES [StorageArea].[dbo].[SA_Genre]([GenreId]);
 
 
 --EXEC SA_GenreProcedure
@@ -25,7 +23,6 @@ AS
 GO
 CREATE OR ALTER PROCEDURE SA_MediaTypeProcedure
 AS
-	ALTER TABLE [StorageArea].[dbo].[SA_Track] DROP CONSTRAINT FkMediaTypeId;
 	TRUNCATE TABLE [StorageArea].[dbo].[SA_MediaType]
 
 	INSERT INTO [StorageArea].[dbo].[SA_MediaType]
@@ -33,7 +30,6 @@ AS
 	SELECT [MediaTypeId], [Name]
 	FROM [Chinook].[dbo].[MediaType]
 
-	ALTER TABLE [StorageArea].[dbo].[SA_Track] ADD CONSTRAINT FkMediaTypeId FOREIGN KEY([MediaTypeId]) REFERENCES [StorageArea].[dbo].[SA_MediaType]([MediaTypeId])
 
 
 --EXEC SA_MediaTypeProcedure
@@ -45,15 +41,12 @@ AS
 GO
 CREATE OR ALTER PROCEDURE SA_ArtistProcedure
 AS
-	ALTER TABLE [StorageArea].[dbo].[SA_Album] DROP CONSTRAINT FkArtistId;
 	TRUNCATE TABLE [StorageArea].[dbo].[SA_Artist];
 	
 	INSERT INTO [StorageArea].[dbo].[SA_Artist]
 		([ArtistId],[Name])
 	SELECT [ArtistId],[Name]
 	FROM [Chinook].[dbo].[Artist]
-
-	ALTER TABLE [StorageArea].[dbo].[SA_Album] ADD CONSTRAINT FkArtistId FOREIGN KEY([ArtistId]) REFERENCES [StorageArea].[dbo].[SA_Artist]([ArtistId]);
 
 
 --EXEC SA_ArtistProcedure
@@ -65,15 +58,12 @@ AS
 GO
 CREATE OR ALTER PROCEDURE SA_AlbumProcedure
 AS
-	ALTER TABLE [StorageArea].[dbo].[SA_Track] DROP CONSTRAINT FkAlbumId;
 	TRUNCATE TABLE [StorageArea].[dbo].[SA_Album];
 	
 	INSERT INTO [StorageArea].[dbo].[SA_Album]
 		([AlbumId], [Title], [ArtistId])
 	SELECT [AlbumId], [Title], [ArtistId]
 	FROM [Chinook].[dbo].[Album]
-
-	ALTER TABLE [StorageArea].[dbo].[SA_Track] ADD CONSTRAINT FkAlbumId FOREIGN KEY([AlbumId]) REFERENCES [StorageArea].[dbo].[SA_Album]([AlbumId])
 	
 
 --EXEC SA_AlbumProcedure
@@ -86,7 +76,6 @@ AS
 GO
 CREATE OR ALTER PROCEDURE SA_EmployeeProcedure
 AS
-	ALTER TABLE [StorageArea].[dbo].[SA_Customer] DROP CONSTRAINT FkToSupportRepId;
 
 	TRUNCATE TABLE [StorageArea].[dbo].[SA_Employee];
 
@@ -94,8 +83,6 @@ AS
 		([EmployeeId], [FirstName], [LastName], [Title], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [ReportsTo], [BirthDate], [HireDate])
 	SELECT [EmployeeId], [FirstName], [LastName], [Title], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [ReportsTo], [BirthDate], [HireDate]
 	FROM [Chinook].[dbo].[Employee]
-
-ALTER TABLE [StorageArea].[dbo].[SA_Customer] ADD CONSTRAINT FkToSupportRepId FOREIGN KEY([SupportRepId]) REFERENCES [StorageArea].[dbo].[SA_Employee]([EmployeeId])
 
 --EXECUTE SA_EmployeeProcedure
 --SELECT *
@@ -109,16 +96,12 @@ ALTER TABLE [StorageArea].[dbo].[SA_Customer] ADD CONSTRAINT FkToSupportRepId FO
 GO
 CREATE OR ALTER PROCEDURE SA_Customer_firstload
 AS
-	ALTER TABLE [StorageArea].[dbo].[SA_Playback] DROP CONSTRAINT FkCustomerId;
-	ALTER TABLE [StorageArea].[dbo].[SA_Rating] DROP CONSTRAINT FkCustomerIdR;
 	TRUNCATE TABLE [StorageArea].[dbo].[SA_Customer];
 
 	INSERT INTO [StorageArea].[dbo].[SA_Customer]
 		([CustomerId], [FirstName], [LastName], [Company], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [SupportRepId], [JoinDate])
 	SELECT [CustomerId], [FirstName], [LastName], [Company], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email], [SupportRepId], [JoinDate]
 	FROM [Chinook].[dbo].[Customer]
-	ALTER TABLE [StorageArea].[dbo].[SA_Rating] ADD CONSTRAINT FkCustomerIdR FOREIGN KEY (CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
-	ALTER TABLE [StorageArea].[dbo].[SA_Playback] ADD CONSTRAINT FkCustomerId FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
 
 
 --EXECUTE SA_Customer_firstload
@@ -159,16 +142,12 @@ AS
 GO
 CREATE OR ALTER PROCEDURE SA_Track_firstload
 AS
-	ALTER TABLE [StorageArea].[dbo].[SA_Playback] DROP CONSTRAINT FkTrackToplayback;
-	ALTER TABLE [StorageArea].[dbo].[SA_Rating] DROP CONSTRAINT FkTrackIdR;
 	TRUNCATE TABLE [StorageArea].[dbo].[SA_Track];
 
 	INSERT INTO [StorageArea].[dbo].[SA_Track]
 		([TrackId], [Name], [AlbumId], [MediaTypeId], [GenreId], [Composer], [Milliseconds], [Bytes],[UnitPrice], AddDate)
 	SELECT [TrackId], [Name], [AlbumId], [MediaTypeId], [GenreId], [Composer], [Milliseconds], [Bytes],[UnitPrice], AddDate
 	FROM [Chinook].[dbo].[Track]
-	ALTER TABLE [StorageArea].[dbo].[SA_Playback] ADD CONSTRAINT FkTrackToplayback FOREIGN KEY(TrackId) REFERENCES [StorageArea].[dbo].[SA_Track](TrackId)
-	ALTER TABLE [StorageArea].[dbo].[SA_Rating] ADD CONSTRAINT FkTrackIdR FOREIGN KEY (TrackId) REFERENCES [StorageArea].[dbo].[SA_Track](TrackId)
 
 
 --EXECUTE SA_Track_firstload
@@ -285,3 +264,65 @@ WHILE @CurrDate <= @EndDate
 END
 
 --EXECUTE SA_Playback_incremental
+
+
+
+
+
+---------------------------------
+-------------Sale------------
+---------------------------------
+
+-- first load
+GO
+CREATE OR ALTER PROCEDURE SA_Sale_FirstLoad
+AS
+
+TRUNCATE TABLE [StorageArea].[dbo].[SA_Sale]
+INSERT INTO [StorageArea].[dbo].[SA_Sale]
+	([InvoiceId],[InvoiceLineId], [TrackId], [CustomerId], [InvoiceDate], [Price], [Quantity])
+
+
+SELECT IL.[InvoiceId], IL.[InvoiceLineId], IL.[TrackId], I.[CustomerId], I.[InvoiceDate], IL.[UnitPrice], IL.[Quantity]
+FROM [Chinook].[dbo].[Invoice] as I INNER JOIN [Chinook].[dbo].[InvoiceLine] as IL
+										ON I.InvoiceId = IL.InvoiceId
+
+
+--EXEC SA_Sale_FirstLoad
+--select * from SA_Sale
+
+
+
+-- incremental
+GO
+CREATE OR ALTER PROCEDURE SA_Sale_incremental
+AS
+DECLARE @EndDate date;
+DECLARE @StartDate date;
+DECLARE @CurrDate date;
+
+SET @EndDate = (SELECT MAX(InvoiceDate)
+FROM [Chinook].[dbo].[Invoice])
+SET @StartDate = (SELECT MAX(InvoiceDate)
+FROM [StorageArea].[dbo].[SA_Sale]);
+SET @CurrDate = DATEADD(day, 1, @StartDate);
+
+
+WHILE @CurrDate <= @EndDate
+	BEGIN
+	INSERT INTO [StorageArea].[dbo].[SA_Sale]
+		([InvoiceId],[InvoiceLineId], [TrackId], [CustomerId], [InvoiceDate], [Price], [Quantity])
+
+
+	SELECT IL.[InvoiceId], IL.[InvoiceLineId], IL.[TrackId], I.[CustomerId], I.[InvoiceDate], IL.[UnitPrice], IL.[Quantity]
+	FROM [Chinook].[dbo].[Invoice] as I INNER JOIN [Chinook].[dbo].[InvoiceLine] as IL
+		ON I.InvoiceId = IL.InvoiceId
+	WHERE InvoiceDate = @CurrDate
+	SET @CurrDate = DATEADD(day, 1, @Currdate)
+END
+
+--EXEC SA_Sale_incremental
+--select * FROM SA_Sale
+
+
+
