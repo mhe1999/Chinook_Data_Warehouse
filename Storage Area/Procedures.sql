@@ -264,3 +264,65 @@ WHILE @CurrDate <= @EndDate
 END
 
 --EXECUTE SA_Playback_incremental
+
+
+
+
+
+---------------------------------
+-------------Sale------------
+---------------------------------
+
+-- first load
+GO
+CREATE OR ALTER PROCEDURE SA_Sale_FirstLoad
+AS
+
+TRUNCATE TABLE [StorageArea].[dbo].[SA_Sale]
+INSERT INTO [StorageArea].[dbo].[SA_Sale]
+	([InvoiceId],[InvoiceLineId], [TrackId], [CustomerId], [InvoiceDate], [Price], [Quantity])
+
+
+SELECT IL.[InvoiceId], IL.[InvoiceLineId], IL.[TrackId], I.[CustomerId], I.[InvoiceDate], IL.[UnitPrice], IL.[Quantity]
+FROM [Chinook].[dbo].[Invoice] as I INNER JOIN [Chinook].[dbo].[InvoiceLine] as IL
+										ON I.InvoiceId = IL.InvoiceId
+
+
+--EXEC SA_Sale_FirstLoad
+--select * from SA_Sale
+
+
+
+-- incremental
+GO
+CREATE OR ALTER PROCEDURE SA_Sale_incremental
+AS
+DECLARE @EndDate date;
+DECLARE @StartDate date;
+DECLARE @CurrDate date;
+
+SET @EndDate = (SELECT MAX(InvoiceDate)
+FROM [Chinook].[dbo].[Invoice])
+SET @StartDate = (SELECT MAX(InvoiceDate)
+FROM [StorageArea].[dbo].[SA_Sale]);
+SET @CurrDate = DATEADD(day, 1, @StartDate);
+
+
+WHILE @CurrDate <= @EndDate
+	BEGIN
+	INSERT INTO [StorageArea].[dbo].[SA_Sale]
+		([InvoiceId],[InvoiceLineId], [TrackId], [CustomerId], [InvoiceDate], [Price], [Quantity])
+
+
+	SELECT IL.[InvoiceId], IL.[InvoiceLineId], IL.[TrackId], I.[CustomerId], I.[InvoiceDate], IL.[UnitPrice], IL.[Quantity]
+	FROM [Chinook].[dbo].[Invoice] as I INNER JOIN [Chinook].[dbo].[InvoiceLine] as IL
+		ON I.InvoiceId = IL.InvoiceId
+	WHERE InvoiceDate = @CurrDate
+	SET @CurrDate = DATEADD(day, 1, @Currdate)
+END
+
+--EXEC SA_Sale_incremental
+--select * FROM SA_Sale
+
+
+
