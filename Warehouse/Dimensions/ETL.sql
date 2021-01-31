@@ -320,6 +320,47 @@ VALUES('[DataWarehouse].[dbo].[Dim_Album]', 'Load Data', NULL, GETDATE())
 
 END
 
+GO
+CREATE OR ALTER PROCEDURE ETL_DimensionEmployee
+AS
+BEGIN
+	--insert new employees to dimension
+	INSERT INTO Dim_Employee(EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate,HireDate, [Address], City, [State], Country, PostalCode, Phone, Fax, Email, [Start_date], [End_Dte], [Current_Flag], [Change_Flag])
+	SELECT					 EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate,HireDate, [Address], City, [State], Country, PostalCode, Phone, Fax, Email, GETDATE()   , NULL	 , 1			 , 0
+	FROM [StorageArea].[dbo].[SA_Employee]
+	WHERE EmployeeId not in (SELECT EmployeeId
+							 FROM [DataWarehouse].dbo.Dim_Employee
+							 WHERE [Current_Flag] = 1)
+
+
+	DROP TABLE #TEMP
+	SELECT SE.EmployeeId, SE.LastName, SE.FirstName, SE.Title, SE.ReportsTo, SE.BirthDate, SE.HireDate, SE.[Address], SE.City, SE.[State], SE.Country, SE.PostalCode, SE.Phone, SE.Fax, SE.Email, GETDATE() AS [Start_date]   , CONVERT(datetime, NULL) AS [End_Dte]  , 1 AS [Current_Flag],
+			CASE
+				WHEN DE.ReportsTo != SE.ReportsTo AND DE.Title = SE.Title THEN 1
+				WHEN DE.ReportsTo = SE.ReportsTo AND DE.Title != SE.Title THEN 2
+				ELSE 3
+			END AS Change_Flag
+	INTO #TEMP
+	FROM [StorageArea].[dbo].[SA_Employee] SE INNER JOIN [DataWarehouse].dbo.Dim_Employee DE ON (SE.EmployeeId = DE.EmployeeId AND DE.Current_Flag = 1)
+	WHERE DE.ReportsTo != SE.ReportsTo OR DE.Title != SE.Title
+
+	select * from #TEMP
+
+
+
+
+	UPDATE [DataWarehouse].dbo.Dim_Employee
+	SET [End_Dte] = DATEADD(day, -1, GETDATE()), Current_Flag = 0
+	WHERE Current_Flag = 1 AND EmployeeId IN (SELECT EmployeeId
+											FROM #TEMP)
+
+	INSERT Dim_Employee(EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate,    HireDate,    [Address],    City,    [State],    Country,    PostalCode,    Phone,    Fax,    Email, [Start_date], [End_Dte], [Current_Flag], [Change_Flag] )
+	SELECT EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate, HireDate, [Address], City, [State], Country, PostalCode, Phone, Fax, Email, [Start_date]   , [End_Dte]     , [Current_Flag], Change_Flag
+	FROM #TEMP
+
+
+END
+
 
 
 USE [DataWarehouse]
@@ -348,6 +389,7 @@ EXECUTE ETL_DimensionLocation
 EXEC ETL_DimensionCustomer
 EXEC ETL_DimensionTrack
 exec ETL_DimensionAlbum
+exec ETL_DimensionEmployee
 
 SELECT * FROM [DataWarehouse].[dbo].[Dim_Genre]
 SELECT * FROM [DataWarehouse].[dbo].[Dim_MediaType]
@@ -356,4 +398,4 @@ SELECT * FROM [DataWarehouse].[dbo].[Dim_Location]
 SELECT * FROM [DataWarehouse].[dbo].[Dim_Customer]
 SELECT * FROM [DataWarehouse].[dbo].[Dim_Track]
 SELECT * FROM [DataWarehouse].[dbo].[Dim_Album]
-
+SELECT * FROM [DataWarehouse].[dbo].Dim_Employee
