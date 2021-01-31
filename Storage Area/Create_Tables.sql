@@ -19,9 +19,8 @@ CREATE TABLE [dbo].[SA_Album]
     [AlbumId] INT NOT NULL,
     [Title] NVARCHAR(160) NOT NULL,
     [ArtistId] INT NOT NULL,
-    CONSTRAINT [PK_Album] PRIMARY KEY CLUSTERED ([AlbumId]),
-	CONSTRAINT FkArtistId FOREIGN KEY([ArtistId]) REFERENCES [StorageArea].[dbo].[SA_Artist]([ArtistId])
-);
+    CONSTRAINT [PK_Album] PRIMARY KEY CLUSTERED ([AlbumId])
+    );
 
 CREATE TABLE [dbo].[SA_Employee]
 (
@@ -40,8 +39,7 @@ CREATE TABLE [dbo].[SA_Employee]
     [Phone] NVARCHAR(24),
     [Fax] NVARCHAR(24),
     [Email] NVARCHAR(60),
-    CONSTRAINT [PK_Employee] PRIMARY KEY CLUSTERED ([EmployeeId]),
-	CONSTRAINT FkReportsTo FOREIGN KEY([ReportsTo]) REFERENCES [StorageArea].[dbo].[SA_Employee]([EmployeeId])
+    CONSTRAINT [PK_Employee] PRIMARY KEY CLUSTERED ([EmployeeId])
 );
 
 CREATE TABLE [dbo].[SA_Customer]
@@ -60,9 +58,8 @@ CREATE TABLE [dbo].[SA_Customer]
     [Email] NVARCHAR(60) NOT NULL,
     [SupportRepId] INT NOT NULL,
 	JoinDate DATE NOT NULL,
-    CONSTRAINT [PK_Customer] PRIMARY KEY CLUSTERED ([CustomerId]),
-	CONSTRAINT FkToSupportRepId FOREIGN KEY([SupportRepId]) REFERENCES [StorageArea].[dbo].[SA_Employee]([EmployeeId])
-);
+    CONSTRAINT [PK_Customer] PRIMARY KEY CLUSTERED ([CustomerId])
+    );
 
 
 CREATE TABLE [StorageArea].[dbo].[SA_MediaType]
@@ -91,10 +88,7 @@ CREATE TABLE [dbo].[SA_Track]
     [Bytes] INT,
     [UnitPrice] NUMERIC(10,2) NOT NULL,
 	AddDate DATE not null,
-    CONSTRAINT [PK_Track] PRIMARY KEY CLUSTERED ([TrackId]),
-	CONSTRAINT FkAlbumId FOREIGN KEY([AlbumId]) REFERENCES [StorageArea].[dbo].[SA_Album]([AlbumId]),
-	CONSTRAINT FkMediaTypeId FOREIGN KEY([MediaTypeId]) REFERENCES [StorageArea].[dbo].[SA_MediaType]([MediaTypeId]),
-	CONSTRAINT FkGenreId FOREIGN KEY([GenreId]) REFERENCES [StorageArea].[dbo].[SA_Genre]([GenreId])
+    CONSTRAINT [PK_Track] PRIMARY KEY CLUSTERED ([TrackId])
 );
 
 
@@ -102,10 +96,9 @@ CREATE TABLE [StorageArea].[dbo].[SA_Playback](
 	[PlayId] BIGINT PRIMARY KEY,
 	[CustomerId] INT NOT NULL,
 	[TrackId] INT NOT NULL,
-	[PlayDate] DATE,
-	CONSTRAINT FkCustomerId FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId]),      ---*
-	CONSTRAINT FkTrackToplayback FOREIGN KEY(TrackId) REFERENCES [StorageArea].[dbo].[SA_Track]([TrackId]),          ---*
-);
+	[PlayDate] DATE
+    
+    );
 
 
 CREATE  TABLE [StorageArea].[dbo].[SA_Rating]
@@ -115,10 +108,8 @@ CREATE  TABLE [StorageArea].[dbo].[SA_Rating]
 	[ScoreDate] DATE,---*
 	[Score] INT,
 	
-	PRIMARY KEY ([CustomerId], [TrackId]),
+	PRIMARY KEY ([CustomerId], [TrackId])
 
-	CONSTRAINT FkTrackIdR FOREIGN KEY(TrackId) REFERENCES [StorageArea].[dbo].[SA_Track]([TrackId]),  
-	CONSTRAINT FkCustomerIdR FOREIGN KEY(CustomerId) REFERENCES [StorageArea].[dbo].[SA_Customer]([CustomerId])
 );
 
 
