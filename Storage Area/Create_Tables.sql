@@ -112,6 +112,17 @@ CREATE  TABLE [StorageArea].[dbo].[SA_Rating]
 
 );
 
+CREATE TABLE [StorageArea].[dbo].[SA_Sale](
+    [InvoiceId] INT ,
+    [InvoiceLineId] INT PRIMARY KEY,
+    [CustomerId] INT,
+    [InvoiceDate] date,
+    [TrackId] INT,
+    [Price] NUMERIC(10,2),
+    [Quantity] INT
 
+
+
+);
 
 
