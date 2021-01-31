@@ -7,7 +7,9 @@ BEGIN
   SELECT GenreId, Name
   FROM [StorageArea].[dbo].[SA_Genre]
   WHERE GenreId not in (SELECT GenreId
-  FROM [DataWarehouse].[dbo].[Dim_Genre])
+  FROM [DataWarehouse].[dbo].[Dim_Genre])  
+  INSERT into [DataWarehouse].[dbo].[LogTable]VALUES('[DataWarehouse].[dbo].[Dim_Genre]', 'Load Data', NULL, GETDATE())
+
 END
 
 GO
@@ -18,9 +20,13 @@ BEGIN
     SELECT MediaTypeId, Name
     FROM [StorageArea].[dbo].[SA_MediaType]
     WHERE MediaTypeId not in (SELECT MediaTypeId
-    FROM [DataWarehouse].[dbo].[Dim_MediaType])
+    FROM [DataWarehouse].[dbo].[Dim_MediaType])  
+    INSERT into [DataWarehouse].[dbo].[LogTable]VALUES('[DataWarehouse].[dbo].[Dim_MediaType]', 'Load Data', NULL, GETDATE())
+
 END
 GO
+
+
 CREATE OR ALTER PROCEDURE ETL_DimensionArtist
 AS
 BEGIN
@@ -29,6 +35,8 @@ BEGIN
     FROM [StorageArea].[dbo].[SA_Artist]
     WHERE ArtistId not in (SELECT ArtistId
     FROM [DataWarehouse].[dbo].[Dim_Artist])
+    INSERT into [DataWarehouse].[dbo].[LogTable]VALUES('[DataWarehouse].[dbo].[Dim_Artist]', 'Load Data', NULL, GETDATE())
+
 END
 
 GO
@@ -42,6 +50,8 @@ WHERE NOT exists (SELECT DISTINCT City, Country
                   FROM [DataWarehouse].[dbo].[Dim_Location] AS DWL
                   WHERE
                   DWL.City = [SAC].City AND DWL.Country = SAC.Country)
+
+  INSERT into [DataWarehouse].[dbo].[LogTable] VALUES('[DataWarehouse].[dbo].[Dim_Location]', 'Load Data', NULL, GETDATE())
 
 END
 
@@ -67,6 +77,8 @@ BEGIN
 
 
 
+  INSERT into [DataWarehouse].[dbo].[LogTable] VALUES('[DataWarehouse].[dbo].[Dim_Customer_temp]', 'Add new Customers to temp table without join to Employee table', NULL, GETDATE())
+
 
 
 
@@ -83,10 +95,16 @@ BEGIN
 
 
 
+  INSERT into [DataWarehouse].[dbo].[LogTable] VALUES('[DataWarehouse].[dbo].[Dim_Customer]', 'Add new Customers from temp table to Customer dimension', NULL, GETDATE())
+
+
 
 
   TRUNCATE TABLE [DataWarehouse].[dbo].[Dim_Customer_temp]
   SET IDENTITY_INSERT [DataWarehouse].[dbo].[Dim_Customer_temp] ON
+
+
+  INSERT into [DataWarehouse].[dbo].[LogTable] VALUES('[DataWarehouse].[dbo].[Dim_Customer_temp]', 'Truncate temp table', NULL, GETDATE())
 
 
 
@@ -108,6 +126,10 @@ BEGIN
 
 
 
+  INSERT into [DataWarehouse].[dbo].[LogTable] VALUES('[DataWarehouse].[dbo].[Dim_Customer_temp]', 'Add all Customers to temp table which their supporter has been changed', NULL, GETDATE())
+
+
+
   SET IDENTITY_INSERT [DataWarehouse].[dbo].[Dim_Customer_temp] OFF
 
 
@@ -118,6 +140,9 @@ BEGIN
   DELETE FROM [DataWarehouse].[dbo].[Dim_Customer]
 		   WHERE Id in (SELECT Id
   FROM [DataWarehouse].[dbo].[Dim_Customer_temp])
+
+
+  INSERT into [DataWarehouse].[dbo].[LogTable] VALUES('[DataWarehouse].[dbo].[Dim_Customer]', 'Delete rows which we already have in temp table', NULL, GETDATE())
 
 
 
@@ -134,6 +159,10 @@ BEGIN
   SELECT [Id], [CustomerId], [FirstName], [LastName], [Company], [Address], [City], [State], [Country], [PostalCode], [Phone], [Fax], [Email],
     [SupportRepId], [SupportLastName], [SupportTitle], [Start_Date_SupportRepId], [End_Date_SupportRepId], [Current_Flag_SupportRepId]
   FROM [DataWarehouse].[dbo].[Dim_Customer_temp]
+
+
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Customer]', 'Insert old data with(current_flag = 0) to Customer dimesion', NULL, GETDATE())
 
 
 
@@ -154,6 +183,8 @@ BEGIN
     INNER JOIN [StorageArea].[dbo].[SA_Employee] SAE ON (SAC.SupportRepId = SAE.EmployeeId)
 
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Customer]', 'Insert new data with (current_flag = ) to Customer dimension', NULL, GETDATE())
 
 
 
@@ -161,7 +192,8 @@ BEGIN
   TRUNCATE TABLE [DataWarehouse].[dbo].[Dim_Customer_temp]
   SET IDENTITY_INSERT [DataWarehouse].[dbo].[Dim_Customer_temp] ON
 
-
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Customer_temp]', 'Truncate temp table', NULL, GETDATE())
 
 
 
@@ -184,6 +216,10 @@ BEGIN
     DC.Email     <> SAC.Email)
 
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Customer_temp]', 'load date, SCD1 for lots of fields', NULL, GETDATE())
+
+
 
   SET IDENTITY_INSERT [DataWarehouse].[dbo].[Dim_Customer_temp] OFF
 
@@ -192,6 +228,10 @@ BEGIN
   DELETE FROM [DataWarehouse].[dbo].[Dim_Customer]
 			WHERE Id IN (SELECT Id
   FROM [DataWarehouse].[dbo].[Dim_Customer_temp])
+
+
+INSERT into [DataWarehouse].[dbo].[LogTable]
+VALUES('[DataWarehouse].[dbo].[Dim_Customer]', 'Delete rows which we already have in temp table', NULL, GETDATE())
 
 
 
@@ -209,10 +249,18 @@ BEGIN
   FROM [DataWarehouse].[dbo].[Dim_Customer_temp]
 
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Customer]', 'Insert new data with (current_flag = ) to Customer dimension', NULL, GETDATE())
+
+
 
 
   SET IDENTITY_INSERT [DataWarehouse].[dbo].[Dim_Customer] OFF
   TRUNCATE TABLE [DataWarehouse].[dbo].[Dim_Customer_temp]
+
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Customer_temp]', 'Truncate temp table', NULL, GETDATE())
+
 
 END
 
@@ -257,7 +305,7 @@ END
 
 
 
-
+GO
 CREATE OR ALTER PROCEDURE ETL_DimensionAlbum
 AS
 BEGIN
@@ -267,6 +315,10 @@ BEGIN
   FROM [StorageArea].[dbo].[SA_Album] as Album inner join [StorageArea].[dbo].[SA_Artist] as Artist on (Album.ArtistId = Artist.ArtistId)
   WHERE AlbumId not in (SELECT AlbumId
   FROM [DataWarehouse].[dbo].[Dim_Album])
+  
+INSERT into [DataWarehouse].[dbo].[LogTable]
+VALUES('[DataWarehouse].[dbo].[Dim_Album]', 'Load Data', NULL, GETDATE())
+
 END
 
 

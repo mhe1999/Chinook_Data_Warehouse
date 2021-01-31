@@ -91,3 +91,11 @@ CREATE TABLE dbo.FactACCOnlinePlayback --ACC Fact table
 );
 
 
+CREATE TABLE [DataWarehouse].[dbo].[LogTable](
+
+    ID BIGINT PRIMARY KEY IDENTITY(1,1),
+    [TableName] NVARCHAR(210) NOT NULL,
+    Descriptions NVARCHAR(210) NOT NULL,
+    CurrDate date,
+    LogDate DATETIME,
+);
