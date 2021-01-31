@@ -141,10 +141,10 @@ CREATE TABLE [dbo].[Dim_Date]
     [CalendarSemester] [int] NULL,
     [PersianCalendarSemester] [int] NULL,
 )
-
+drop table [dbo].[Dim_Employee]
 CREATE TABLE [dbo].[Dim_Employee]
 (
-    [Id] BIGINT PRIMARY KEY,
+    [Id] BIGINT PRIMARY KEY IDENTITY(1,1),
     [EmployeeId] INT NOT NULL,
     [LastName] NVARCHAR(30) NOT NULL,
     [FirstName] NVARCHAR(30) NOT NULL,
@@ -161,12 +161,22 @@ CREATE TABLE [dbo].[Dim_Employee]
     [Fax] NVARCHAR(24),
     [Email] NVARCHAR(70),
     ----SCD2
-    [Start_Date_ReportTo] DATE,
-    [End_Date_ReportTo] DATE,
-    [Current_Flag_lReportTo] bit,
+    --[Start_Date_ReportTo] DATE,
+    --[End_Date_ReportTo] DATE,
+    --[Current_Flag_lReportTo] bit,
 
-    [Start_Date_Title] DATE,
-	[End_Date_Title] DATE,
-	[Current_Flag_Title] bit
+    --[Start_Date_Title] DATE,
+	--[End_Date_Title] DATE,
+	--[Current_Flag_Title] bit
+
+	[Start_date] DATE,
+	[End_Dte] DATE,
+	[Current_Flag] BIT,
+	[Change_Flag] INT
+	-- first load = 0
+	-- [ReportsTo] change = 1
+	-- [Title] change = 2
+	-- both change = 3
+	
 );
 
