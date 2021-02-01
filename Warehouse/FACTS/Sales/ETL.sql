@@ -186,17 +186,31 @@ END
 
 
 
-
-
-
-
-
+-------------------------
+-------------------------
+---------ACC-------------
+-------------------------
+-------------------------
+GO
+CREATE OR ALTER PROCEDURE ETL_Sale_ACCFact
+AS
+BEGIN
+    DECLARE @TempDate INT;
+    SET @TempDate = (select max(TranDate)
+    from [DataWarehouse].[dbo].[FactDailySnapshotSale])
+    TRUNCATE TABLE [DataWarehouse].[dbo].[FactACCSale]
+    INSERT INTO [DataWarehouse].[dbo].[FactACCSale](TrackID, AlbumID, SupportID,GenreID, ArtistID, LocationID, MediaTypeID, sumSale, numberofSale, averageSale, MaxNum, MinNum)
+    SELECT TrackID, AlbumID, SupportID,GenreID, ArtistID, LocationID, MediaTypeID,  sumSaletoday, numberofSaleToday, averageSaleUntillToday, MaxNum, MinNum
+    FROM [DataWarehouse].[dbo].[FactDailySnapshotSale]
+    WHERE TranDate = @TempDate
+END
 
 
 
 EXEC ETL_Sale_firstLoadTransFact
 EXEC ETL_Sale_incrementalTransFact
 EXEC ETL_Sale_FactDaily
+EXEC ETL_Sale_ACCFact
 
 
 --TRUNCATE TABLE [DataWarehouse].[dbo].[FactTransactionSale];
@@ -209,3 +223,6 @@ select * from [DataWarehouse].[dbo].tmp_LastDay_Sales
 select * from [DataWarehouse].[dbo].[FactTransactionSale]
 select * from [DataWarehouse].[dbo].[FactDailySnapshotSale]
 where sumSaletoday > 0
+
+select * from  [DataWarehouse].[dbo].[FactACCSale]
+WHERE numberofSale>0
