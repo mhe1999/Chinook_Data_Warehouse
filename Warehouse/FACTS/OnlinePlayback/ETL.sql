@@ -68,14 +68,9 @@ END
 
 
 ------------------------
----first Load DailyFact-
+---DailyFact------------
 ------------------------
-GO
-CREATE or ALTER view TrackAndLocation
-as
-    (
-    SELECT TrackId, L.Id as LocationID
-    FROM [DataWarehouse].[dbo].[Dim_Location] as L, [DataWarehouse].[dbo].Dim_Track)
+
 
 
 
@@ -90,38 +85,30 @@ DECLARE @EndDate INT;
 DECLARE @TempDATE INT;
 DECLARE @StartDate INT;
 DECLARE @CurrDate INT;
-SET @EndDate = (SELECT MAX(TranDate)
-                    FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]);
-/*SET @ENDDATE = (select DWD.FullDateAlternateKey
-                    FROM [DataWarehouse].[dbo].Dim_Date  as DWD
-                    WHERE DWD.TimeKey = @TempDATE )
-*/
-SET @TempDATE = (SELECT MIN(TranDate)
-                FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback])
+
+SET @EndDate = (SELECT MAX(TranDate)FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]);
+SET @TempDATE = (SELECT MIN(TranDate)FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback])
 SET @CurrDate =(select isnull(max(TranDate),@TempDATE - 1) FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]);
 
-/*SET @CurrDate =(select DWD.FullDateAlternateKey
-                FROM [DataWarehouse].[dbo].Dim_Date  as DWD
-                WHERE DWD.TimeKey = @TempDATE )
- */       
---SET @CurrDate = DATEADD(day, 1, @Currdate)
---SELECT @TempDATE
---select @CurrDate
---SELECT @EndDate
 SET @CurrDate = @CurrDate + 1;
 SET @StartDate = @CurrDate;
+
 WHILE @CurrDate <= @EndDate
         BEGIN        
             TRUNCATE TABLE [DataWarehouse].[dbo].tmp_CurrDate_all_Track 
             TRUNCATE TABLE [DataWarehouse].[dbo].[tmp_LastDay_tracks]
             
             insert into [DataWarehouse].[dbo].[tmp_CurrDate_all_Track]
-            select TrackID, LocationID, COUNT(*) AS NumOfPlayBack FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]
+            select TrackID, LocationID, COUNT(*) AS NumOfPlayBack 
+            FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]
             WHERE TranDate >= @CurrDate AND TranDate< @CurrDate + 1 
             GROUP BY TrackID, LocationID
 
-            if not exists(select * from [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback] WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1)
-                BEGIN
+            if not exists(select * 
+                            from [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback] 
+                            WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1)
+                
+                BEGIN --first load
                     INSERT INTO [DataWarehouse].[dbo].[tmp_LastDay_tracks]
                     SELECT TrackId, LocationID, 0, 0, 0, 0, 0
                     FROM TrackAndLocation
@@ -130,32 +117,41 @@ WHILE @CurrDate <= @EndDate
 
 
             ELSE
-                BEGIN --for new track must be left joined with trackandlocation
+                BEGIN --incremental
                     INSERT INTO [DataWarehouse].[dbo].[tmp_LastDay_tracks]
-                    SELECT TrackID, LocationID, NumberOfPlaybackToday, MaxNum, MinNum, NumberOfPlaybackUntillToday, AverageNumOfPlaybackUntillToday
-                    FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback] WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1
+                    SELECT TL.TrackID, TL.LocationID, isnull(FD.NumberOfPlaybackToday, 0), isnull(MaxNum, 0), isnull(MinNum, 0), isnull(NumberOfPlaybackUntillToday, 0), isnull(AverageNumOfPlaybackUntillToday, 0)
+                    FROM TrackAndLocation as TL 
+                                    LEFT JOIN  [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback] as FD 
+                                            ON TL.TrackID = FD.TrackID AND TL.LocationID = FD.LocationID
+                    WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1
                 END
 
+     
+     
             insert into [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback](TrackId, LocationID, GenreId, AlbumId, ArtistId, MediaTypeId, NumberOfPlaybackToday, MaxNum, MinNum, NumberOfPlaybackUntillToday, AverageNumOfPlaybackUntillToday, TranDate)
-
-            SELECT TL.TrackId, TL.LocationID, T.GenreId, T.AlbumId, T.ArtistId, T.MediaTypeId, ISNULL(CT.NumOfPlayBack, 0) as NumOfPlayBack, 
+            SELECT TL.TrackId, TL.LocationID, T.GenreId, T.AlbumId, T.ArtistId, T.MediaTypeId,
+    
+                ISNULL(CT.NumOfPlayBack, 0) as NumOfPlayBack, 
                 CASE 
                     when TL.MaxNum >= ISNULL(CT.NumOfPlayBack, 0) then TL.MaxNum
                     else  ISNULL(CT.NumOfPlayBack, 0) END AS MaxNum,
+
                 CASE 
                     when TL.MinNum = 0 AND ISNULL(CT.NumOfPlayBack, 0) = 0 then 0
                     when TL.MinNum = 0 AND ISNULL(CT.NumOfPlayBack, 0) <> 0 then ISNULL(CT.NumOfPlayBack, 0)
                     when TL.MinNum <> 0 AND ISNULL(CT.NumOfPlayBack, 0) = 0 then TL.MinNum
                     when TL.MinNum <= ISNULL(CT.NumOfPlayBack, 0) then TL.MinNum
                     else  ISNULL(CT.NumOfPlayBack, 0) END AS MinNum,
-                ISNULL(CT.NumOfPlayBack, 0) + TL.NumberOfPlaybackUntillToday as NumberOfPlaybackUntillToday,
-                ((ISNULL(CT.NumOfPlayBack, 0) + TL.NumberOfPlaybackUntillToday)/(1+(@CurrDate -@StartDate))) AS AverageNumOfPlayback 
-                ,@CurrDate
+
+                    ISNULL(CT.NumOfPlayBack, 0) + TL.NumberOfPlaybackUntillToday as NumberOfPlaybackUntillToday,
+                    ((ISNULL(CT.NumOfPlayBack, 0) + TL.NumberOfPlaybackUntillToday)/(1+(@CurrDate -@StartDate))) AS AverageNumOfPlayback 
+                    ,@CurrDate
                     
                 
-                FROM  [DataWarehouse].[dbo].[tmp_LastDay_tracks] as TL LEFT JOIN [DataWarehouse].[dbo].[tmp_CurrDate_all_Track] as CT
-                                            ON TL.TrackId = CT.TrackID AND TL.LocationID = CT.LocationID
-                                            INNER JOIN [DataWarehouse].[dbo].[Dim_Track] AS T ON TL.TrackID = T.Id 
+                FROM  [DataWarehouse].[dbo].[tmp_LastDay_tracks] as TL 
+                        LEFT JOIN [DataWarehouse].[dbo].[tmp_CurrDate_all_Track] as CT
+                                ON TL.TrackId = CT.TrackID AND TL.LocationID = CT.LocationID
+                        INNER JOIN [DataWarehouse].[dbo].[Dim_Track] AS T ON TL.TrackID = T.Id 
 
 
         
@@ -170,17 +166,12 @@ END
 
 
 
-exec ETL_OP_firstLoadDailyFact
-TRUNCATE TABLE [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
-
 
 -------------------------
 -------------------------
 ---------ACC-------------
 -------------------------
 -------------------------
-
-
 GO
 CREATE OR ALTER PROCEDURE ETL_OP_ACCFact
 AS
@@ -195,11 +186,6 @@ BEGIN
 END
 
 
-EXEC ETL_OP_ACCFact
-
-
-select * FROM [DataWarehouse].[dbo].[FactACCOnlinePlayback]
-WHERE AverageNumOfPlayback > 0
 
 
 
@@ -207,56 +193,6 @@ WHERE AverageNumOfPlayback > 0
 
 
 
-
-
-
-
-select * FROM [DataWarehouse].[dbo].tmp_CurrDate_all_Track
-
-SELECT * FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
-WHERE TranDate = 20130117
-ORDER by TrackID,LocationID
-
-SELECT *
-FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
-WHERE TranDate = 20130118
-ORDER by TrackID,LocationID
-
-SELECT *
-FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
-WHERE TranDate = 20130119
-ORDER by TrackID,LocationID
-
-
----------------
-SELECT *
-FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
-WHERE TranDate = 20130119 AND NumberOfPlaybackToday > 0
-ORDER by TrackID,LocationID
-
-
-select * from [DataWarehouse].[dbo].FactTransactionOnlinePlayback
-WHERE  LocationID=42 AND TrackID = 12
-----------
-SELECT *
-FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
-WHERE TranDate = 20130120 AND NumberOfPlaybackUntillToday > 5
-ORDER by TrackID,LocationID
-
-
-select *
-from [DataWarehouse].[dbo].FactTransactionOnlinePlayback
-WHERE  LocationID=42 AND TrackID = 10
--------------
-SELECT *
-FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
-WHERE TranDate = 20130118 AND NumberOfPlaybackToday > 0
-ORDER by TrackID,LocationID
-
-
-select *
-from [DataWarehouse].[dbo].FactTransactionOnlinePlayback
-WHERE  LocationID=42 AND TrackID = 10
 
 
 
@@ -270,8 +206,28 @@ WHERE  LocationID=42 AND TrackID = 10
 
 EXEC ETL_OP_firstLoadTransFact
 exec ETL_OP_incrementalTransFact
+exec ETL_OP_firstLoadDailyFact
+EXEC ETL_OP_ACCFact
+
+--TRUNCATE TABLE [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
+
 select * FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]
-select *FROM [DataWarehouse].[dbo].[LogTable]
+select * FROM [DataWarehouse].[dbo].[LogTable]
+SELECT * FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback] ORDER by TrackID,LocationID
+select * FROM [DataWarehouse].[dbo].[FactACCOnlinePlayback] WHERE AverageNumOfPlayback > 0
 
 
 
+
+
+/*
+SELECT *
+FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
+WHERE TranDate = 20130120 AND NumberOfPlaybackToday > 0
+ORDER by TrackID,LocationID
+
+
+select *
+from [DataWarehouse].[dbo].FactTransactionOnlinePlayback
+WHERE  LocationID=2 AND TrackID = 10
+*/

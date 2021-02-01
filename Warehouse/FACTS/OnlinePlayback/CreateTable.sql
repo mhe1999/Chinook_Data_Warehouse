@@ -122,3 +122,10 @@ CREATE TABLE [DataWarehouse].[dbo].[LogTable](
     CurrDate date,
     LogDate DATETIME,
 );
+
+GO
+CREATE or ALTER view TrackAndLocation
+as
+    (
+    SELECT TrackId, L.Id as LocationID
+    FROM [DataWarehouse].[dbo].[Dim_Location] as L, [DataWarehouse].[dbo].Dim_Track)
