@@ -127,5 +127,6 @@ GO
 CREATE or ALTER view TrackAndLocation
 as
     (
-    SELECT TrackId, L.Id as LocationID
-    FROM [DataWarehouse].[dbo].[Dim_Location] as L, [DataWarehouse].[dbo].Dim_Track)
+    SELECT T.Id as TrackId, L.Id as LocationID
+    FROM [DataWarehouse].[dbo].[Dim_Location] as L, [DataWarehouse].[dbo].Dim_Track as T
+    WHERE T.Current_Flag_UnitPrice = 1)
