@@ -99,3 +99,45 @@ CREATE TABLE dbo.FactACCSale
     FOREIGN KEY(MediaTypeID) REFERENCES [dbo].[Dim_MediaType](MediaTypeId),
 	FOREIGN KEY(SupportID) REFERENCES [DataWarehouse].[dbo].[Dim_Employee]([Id])*/
 );
+
+
+
+
+CREATE or ALTER VIEW LocationAndTrackAndEmployee as(
+    SELECT T.Id as TrackId, L.Id as LocationID, E.Id as EmployeeId
+    from [DataWarehouse].[dbo].[Dim_Location] as L,
+     [DataWarehouse].[dbo].Dim_Track as T,
+     [DataWarehouse].[dbo].Dim_Employee as E
+     WHERE T.Current_Flag_UnitPrice = 1 AND E.Current_Flag =1
+);
+
+--SELECT * FROM LocationAndTrackAndEmployee
+
+
+
+CREATE TABLE [DataWarehouse].[dbo].tmp_CurrDate_all_Sale
+(
+    TrackID BIGINT,
+    LocationID INT,
+    EmployeeID BIGINT,
+    NumOfSale INT,
+    SumSale NUMERIC(15,2),
+    PRIMARY KEY(TrackID, LocationID, EmployeeID),
+);
+
+
+
+
+CREATE TABLE [DataWarehouse].[dbo].[tmp_LastDay_Sales]
+(
+    [TrackID] [bigint] NOT NULL,
+    [LocationID] [int] NOT NULL,
+    EmployeeID BIGINT,
+    SumSaleToday NUMERIC(15,2),
+    [NumberOfSaleToday] int, 
+    [AverageSaleUntillToday] NUMERIC(15,2), 
+    [MaxNum] [int] NULL,
+    [MinNum] [int] NULL,
+    PRIMARY KEY(TrackID, LocationID, EmployeeID)
+
+);
