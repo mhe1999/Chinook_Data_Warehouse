@@ -91,6 +91,29 @@ CREATE TABLE dbo.FactACCOnlinePlayback --ACC Fact table
 );
 
 
+CREATE TABLE [DataWarehouse].[dbo].tmp_CurrDate_all_Track(
+    TrackID BIGINT,
+    LocationID INT,
+    NumOfPlayBack INT,
+    PRIMARY KEY(TrackID, LocationID),
+);
+
+
+
+
+CREATE TABLE [DataWarehouse].[dbo].[tmp_LastDay_tracks]
+(
+    [TrackID] [bigint] NOT NULL,
+    [LocationID] [int] NOT NULL,
+    [NumberOfPlaybackToday] [int] NULL,
+    [MaxNum] [int] NULL,
+    [MinNum] [int] NULL,
+    [NumberOfPlaybackUntillToday] [int] NULL,
+    [AverageNumOfPlaybackUntillToday] [int] NULL,
+    PRIMARY KEY(TrackID, LocationID)
+
+);
+
 CREATE TABLE [DataWarehouse].[dbo].[LogTable](
 
     ID BIGINT PRIMARY KEY IDENTITY(1,1),
