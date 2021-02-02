@@ -11,8 +11,8 @@
   DTS:LocaleID="1033"
   DTS:ObjectName="Package"
   DTS:PackageType="5"
-  DTS:VersionBuild="24"
-  DTS:VersionGUID="{A3DEA671-9DC9-4C77-B40B-C1F9A3D4A852}">
+  DTS:VersionBuild="26"
+  DTS:VersionGUID="{704A8953-184F-47AC-BAAC-A97E8C89A76D}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:Variables />
@@ -10637,7 +10637,7 @@ from SA_Track T inner join SA_Album AL		ON (T.AlbumId = AL.AlbumId)
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
             <mssgm:EdgeLabel
-              BoundingBox="-136.591705729167,29.2647058823529,167.850078125,16"
+              BoundingBox="-127.723053385417,29.2647058823529,150.1127734375,11.609375"
               RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
@@ -10676,9 +10676,7 @@ from SA_Track T inner join SA_Album AL		ON (T.AlbumId = AL.AlbumId)
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="-12,35,16,16"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <NodeLayout
@@ -10716,9 +10714,7 @@ from SA_Track T inner join SA_Album AL		ON (T.AlbumId = AL.AlbumId)
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="56.4166666666667,40.53772070626,16,16"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <NodeLayout
@@ -10744,9 +10740,7 @@ from SA_Track T inner join SA_Album AL		ON (T.AlbumId = AL.AlbumId)
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="-8,18.25,16,16"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <NodeLayout
@@ -10772,9 +10766,7 @@ from SA_Track T inner join SA_Album AL		ON (T.AlbumId = AL.AlbumId)
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="-8,18.25,16,16"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <NodeLayout
@@ -10813,7 +10805,7 @@ from SA_Track T inner join SA_Album AL		ON (T.AlbumId = AL.AlbumId)
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
             <mssgm:EdgeLabel
-              BoundingBox="26.9566276041667,42.8125,71.920078125,16"
+              BoundingBox="35.8252799479167,42.8125,54.1827734375,11.43359375"
               RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
@@ -10848,9 +10840,7 @@ from SA_Track T inner join SA_Album AL		ON (T.AlbumId = AL.AlbumId)
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="-78.6666666666666,81.1099518459069,16,16"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
       </GraphLayout>
