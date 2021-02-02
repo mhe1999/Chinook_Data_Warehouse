@@ -97,10 +97,6 @@ END
 -------------fact daily--------------
 -------------------------------------
 -------------------------------------
-
-
-
-
 GO
 CREATE OR ALTER PROCEDURE ETL_Sale_FactDaily
 AS
@@ -120,13 +116,16 @@ BEGIN
     FROM [DataWarehouse].[dbo].[FactDailySnapshotSale]);
 
     SET @CurrDate = @CurrDate + 1;
---    SET @CurrDate = 20090404
---    select @CurrDate
- --   SELECT @EndDate
     WHILE @CurrDate <= @EndDate
         BEGIN
         TRUNCATE TABLE [DataWarehouse].[dbo].tmp_CurrDate_all_Sale
         TRUNCATE TABLE [DataWarehouse].[dbo].tmp_LastDay_Sales
+
+        INSERT into [DataWarehouse].[dbo].[LogTable]
+        VALUES('[DataWarehouse].[dbo].[FactDailySnapshotSale]', 'Truncacte tmp_CurrDate_all_Sale', NULL, GETDATE())
+
+        INSERT into [DataWarehouse].[dbo].[LogTable]
+        VALUES('[DataWarehouse].[dbo].[FactDailySnapshotSale]', 'Truncate tmp_LastDay_Sales', NULL, GETDATE())
 
         insert into [DataWarehouse].[dbo].[tmp_CurrDate_all_Sale]
         select TrackID, LocationID, SupportID, COUNT(*) AS NumOfSale, Sum(Price)
@@ -134,6 +133,11 @@ BEGIN
         WHERE TranDate >= @CurrDate AND TranDate< @CurrDate + 1
         GROUP BY TrackID, LocationID, SupportID
 
+
+        INSERT into [DataWarehouse].[dbo].[LogTable]
+        VALUES('[DataWarehouse].[dbo].[FactDailySnapshotSale]', 'Insert Today Data to temp table', NULL, GETDATE())
+
+ 
 
         if not exists(select *
                     from [DataWarehouse].[dbo].[FactDailySnapshotSale]
@@ -144,6 +148,10 @@ BEGIN
             SELECT TrackId, LocationID, EmployeeID, 0, 0, 0, 0, 0
             FROM LocationAndTrackAndEmployee
 
+            INSERT into [DataWarehouse].[dbo].[LogTable]
+            VALUES('[DataWarehouse].[dbo].[FactDailySnapshotSale]', 'Insert Yesterday Data to temp table(first load)', NULL, GETDATE())
+
+ 
         END
 
 
@@ -158,6 +166,9 @@ BEGIN
                 LEFT JOIN [DataWarehouse].[dbo].[FactDailySnapshotSale] as FD
                 ON TL.TrackID = FD.TrackID AND TL.LocationID = FD.LocationID AND TL.EmployeeId = FD.SupportID
             WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1
+
+            INSERT into [DataWarehouse].[dbo].[LogTable]
+            VALUES('[DataWarehouse].[dbo].[FactDailySnapshotSale]', 'Insert Yesterday Data to temp table(incremental)', NULL, GETDATE())
         END
 
 
@@ -188,8 +199,8 @@ BEGIN
             INNER JOIN [DataWarehouse].[dbo].[Dim_Track] AS T ON TL.TrackID = T.Id 
 
 
-
-
+            INSERT into [DataWarehouse].[dbo].[LogTable]
+            VALUES('[DataWarehouse].[dbo].[FactDailySnapshotSale]', 'Insert Data to Facttable', NULL, GETDATE())
 
         SET @CurrDate = @CurrDate + 1;
 
@@ -200,7 +211,17 @@ BEGIN
 END
 
 
+--------------first load ----------------
 
+GO
+CREATE OR ALTER PROCEDURE ETL_Sale_firstLoadFactDaily
+AS
+BEGIN
+    TRUNCATE TABLE [DataWarehouse].[dbo].[FactDailySnapshotSale];
+    INSERT into [DataWarehouse].[dbo].[LogTable]
+    VALUES('[DataWarehouse].[dbo].[FactDailySnapshotSale]', 'Truncate table first load', NULL, GETDATE())
+    EXEC ETL_Sale_FactDaily
+END
 
 
 
@@ -237,6 +258,7 @@ END
 
 EXEC ETL_Sale_firstLoadTransFact
 EXEC ETL_Sale_incrementalTransFact
+exec ETL_Sale_firstLoadFactDaily
 EXEC ETL_Sale_FactDaily
 EXEC ETL_Sale_ACCFact
 
@@ -255,4 +277,4 @@ where sumSaletoday > 0
 
 select * from [DataWarehouse].[dbo].[LogTable]
 select * from  [DataWarehouse].[dbo].[FactACCSale]
-WHERE numberofSale>0
+WHERE numberofSale>0    
