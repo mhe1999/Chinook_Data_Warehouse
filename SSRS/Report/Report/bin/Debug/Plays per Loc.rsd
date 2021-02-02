@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>Chinnok</DataSourceReference>
+      <CommandText>select Concat(CONCAT(L.Country, ' '),L.City) Loc, sum(NumberOfPlayback) test
+FROM [DataWarehouse].[dbo].[FactACCOnlinePlayback] F inner join Dim_Location L on F.LocationID = L.Id  
+--WHERE AverageNumOfPlayback &gt; 0 
+Group By L.Country, L.City
+having sum(NumberOfPlayback) &gt; 0</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="Loc">
+        <DataField>Loc</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="test">
+        <DataField>test</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

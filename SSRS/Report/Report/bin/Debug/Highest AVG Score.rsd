@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>Chinnok</DataSourceReference>
+      <CommandText>with temp1 (TrackId, total, Number_Of_Votes)
+as 
+	(
+		select TrackId, Track_AVG_Score * Number_Of_Votes as total, Number_Of_Votes
+		from FactACCRating
+		where Number_Of_Votes &gt; 0 
+	),
+
+temp2(TrackId, [total rate],  [total votes]) as
+	(
+		select TrackId, sum(total) [total rate], sum(Number_Of_Votes) [total votes]
+		from temp1
+		group by TrackId
+	)
+
+select R.Name , [total rate] / [total votes] avgS
+from temp2 E inner join Dim_Track R on E.TrackId = R.Id 
+where [total rate] / [total votes] &gt; 4.7
+order by avgS DESC</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="Name">
+        <DataField>Name</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="avgS">
+        <DataField>avgS</DataField>
+        <rd:TypeName>System.Decimal</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>
