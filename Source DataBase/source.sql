@@ -44,6 +44,10 @@ CREATE TABLE [dbo].[Artist]
 (
     [ArtistId] INT NOT NULL,
     [Name] NVARCHAR(120),
+    [LastName] NVARCHAR(120),
+    [Gender] NVARCHAR(10),
+    [Email] NVARCHAR(120),
+    [Nationality] NVARCHAR(60),
     CONSTRAINT [PK_Artist] PRIMARY KEY CLUSTERED ([ArtistId])
 );
 GO
