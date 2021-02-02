@@ -333,7 +333,7 @@ BEGIN
 							 WHERE [Current_Flag] = 1)
 
 
-	DROP TABLE #TEMP
+	DROP TABLE IF EXISTS #TEMP
 	SELECT SE.EmployeeId, SE.LastName, SE.FirstName, SE.Title, SE.ReportsTo, SE.BirthDate, SE.HireDate, SE.[Address], SE.City, SE.[State], SE.Country, SE.PostalCode, SE.Phone, SE.Fax, SE.Email, GETDATE() AS [Start_date]   , CONVERT(datetime, NULL) AS [End_Dte]  , 1 AS [Current_Flag],
 			CASE
 				WHEN DE.ReportsTo != SE.ReportsTo AND DE.Title = SE.Title THEN 1
@@ -344,11 +344,6 @@ BEGIN
 	FROM [StorageArea].[dbo].[SA_Employee] SE INNER JOIN [DataWarehouse].dbo.Dim_Employee DE ON (SE.EmployeeId = DE.EmployeeId AND DE.Current_Flag = 1)
 	WHERE DE.ReportsTo != SE.ReportsTo OR DE.Title != SE.Title
 
-	select * from #TEMP
-
-
-
-
 	UPDATE [DataWarehouse].dbo.Dim_Employee
 	SET [End_Dte] = DATEADD(day, -1, GETDATE()), Current_Flag = 0
 	WHERE Current_Flag = 1 AND EmployeeId IN (SELECT EmployeeId
@@ -358,6 +353,90 @@ BEGIN
 	SELECT EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate, HireDate, [Address], City, [State], Country, PostalCode, Phone, Fax, Email, [Start_date]   , [End_Dte]     , [Current_Flag], Change_Flag
 	FROM #TEMP
 
+	
+	DROP TABLE IF EXISTS #SCD1
+	SELECT	DE.Id,
+			DE.EmployeeId,
+			SE.LastName, 
+			SE.FirstName, 
+			DE.Title, 
+			DE.ReportsTo, 
+			SE.BirthDate, 
+			SE.HireDate, 
+			SE.Address, 
+			SE.City, 
+			SE.State,
+			SE.Country,
+			SE.PostalCode,
+			SE.Phone,
+			SE.Fax,
+			SE.Email,
+			DE.[Start_date],
+			DE.[End_Dte],
+			DE.[Current_Flag],
+			DE.[Change_Flag]
+	INTO #SCD1
+	FROM [StorageArea].[dbo].[SA_Employee] SE INNER JOIN [DataWarehouse].dbo.Dim_Employee DE ON (SE.EmployeeId = DE.EmployeeId)
+	WHERE SE.LastName != DE.LastName OR
+			SE.FirstName != DE.FirstName OR
+			SE.BirthDate != DE.BirthDate OR
+			SE.HireDate != DE.HireDate OR
+			SE.Address != DE.Address OR
+			SE.City != DE.City OR
+			SE.State != DE.State OR
+			SE.Country != DE.Country OR
+			SE.PostalCode != DE.PostalCode OR
+			SE.Phone != DE.Phone OR
+			SE.Fax != DE.Fax OR
+			SE.Email != DE.Email
+
+	Delete FROM Dim_Employee
+			WHERE Id in (select Id from #SCD1)
+
+	SET IDENTITY_INSERT [DataWarehouse].[dbo].Dim_Employee ON
+	INSERT INTO Dim_Employee (Id,
+			EmployeeId,
+			LastName, 
+			FirstName, 
+			Title, 
+			ReportsTo, 
+			BirthDate, 
+			HireDate, 
+			Address, 
+			City, 
+			State,
+			Country,
+			PostalCode,
+			Phone,
+			Fax,
+			Email,
+			[Start_date],
+			[End_Dte],
+			[Current_Flag],
+			[Change_Flag])
+	SELECT Id,
+			EmployeeId,
+			LastName, 
+			FirstName, 
+			Title, 
+			ReportsTo, 
+			BirthDate, 
+			HireDate, 
+			Address, 
+			City, 
+			State,
+			Country,
+			PostalCode,
+			Phone,
+			Fax,
+			Email,
+			[Start_date],
+			[End_Dte],
+			[Current_Flag],
+			[Change_Flag]
+		FROM #SCD1
+
+	SET IDENTITY_INSERT [DataWarehouse].[dbo].Dim_Employee OFF
 
 END
 
@@ -374,7 +453,7 @@ WITH (
 )
 
 bulk INSERT [DataWarehouse].[dbo].[Dim_Date]
-FROM '/home/mohammadsgh/Desktop/changed1.csv'
+FROM 'C:\Users\Mohammad\Desktop\Chinook_Data_Warehouse\Warehouse\Dimensions\sample data for Date Dimension\changed1.csv'
 WITH (
     fieldterminator = ',',
     ROWTERMINATOR= '\n'

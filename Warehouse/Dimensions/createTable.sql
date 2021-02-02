@@ -142,6 +142,7 @@ CREATE TABLE [dbo].[Dim_Date]
     [PersianCalendarSemester] [int] NULL,
 )
 drop table [dbo].[Dim_Employee]
+
 CREATE TABLE [dbo].[Dim_Employee]
 (
     [Id] BIGINT PRIMARY KEY IDENTITY(1,1),
