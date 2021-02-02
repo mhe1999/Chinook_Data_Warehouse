@@ -19,17 +19,7 @@ CREATE TABLE [DataWarehouse].[dbo].[FactTransactionOnlinePlayback](
     MediaTypeID INT,
     TranDate int,
 
-	/*
-    FOREIGN KEY(TrackID) REFERENCES [DataWarehouse].[dbo].[Dim_Track](Id),
---    FOREIGN KEY(TrackIDN) REFERENCES [DataWarehouse].[dbo].[Dim_Track](TrackId),
-    FOREIGN KEY(AlbumID) REFERENCES [DataWarehouse].[dbo].[Dim_Album](AlbumId),
-    FOREIGN KEY(GenreID) REFERENCES [DataWarehouse].[dbo].[Dim_Genre](GenreId),
-    FOREIGN KEY(ArtistID) REFERENCES [DataWarehouse].[dbo].[Dim_Artist](ArtistId),
-    FOREIGN KEY(LocationID) REFERENCES [DataWarehouse].[dbo].[Dim_Location](Id),
-    FOREIGN KEY(MediaTypeID) REFERENCES [DataWarehouse].[dbo].[Dim_MediaType](MediaTypeId),
-    FOREIGN KEY(CustomerID) REFERENCES [DataWarehouse].[dbo].[Dim_Customer](Id),
---    FOREIGN KEY(CustomerIDN) REFERENCES [DataWarehouse].[dbo].[Dim_Customer](CustomerId),
-    FOREIGN KEY(TranDate) REFERENCES [DataWarehouse].[dbo].[Dim_Date](TimeKey)*/
+
 );
 
 CREATE TABLE dbo.FactDailySnapshotOnlinePlayback --in this periodic table we investigate **Track** statistics
@@ -50,15 +40,6 @@ CREATE TABLE dbo.FactDailySnapshotOnlinePlayback --in this periodic table we inv
     NumberOfPlaybackUntillToday INT,-- today + past days
     AverageNumOfPlaybackUntillToday INT,-- today + past days
 
-/*
-    FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
-    FOREIGN KEY(TrackID) REFERENCES [dbo].[Dim_Track](Id),
-    FOREIGN KEY(AlbumID) REFERENCES [dbo].[Dim_Album](AlbumId),
-    FOREIGN KEY(GenreID) REFERENCES [dbo].[Dim_Genre](GenreId),
-    FOREIGN KEY(ArtistID) REFERENCES [dbo].[Dim_Artist](ArtistId),
-   FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
-    FOREIGN KEY(MediaTypeID) REFERENCES [dbo].[Dim_MediaType](MediaTypeId),
-    FOREIGN KEY(TranDate) REFERENCES [dbo].[Dim_Date](TimeKey)-- date dimension must be create*/
 
 );
 
@@ -79,14 +60,6 @@ CREATE TABLE dbo.FactACCOnlinePlayback --ACC Fact table
     NumberOfPlayback INT,
     AverageNumOfPlayback INT,
 
-	/*
-    FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
-    FOREIGN KEY(TrackID) REFERENCES [dbo].[Dim_Track](Id),
-    FOREIGN KEY(AlbumID) REFERENCES [dbo].[Dim_Album](AlbumId),
-    FOREIGN KEY(GenreID) REFERENCES [dbo].[Dim_Genre](GenreId),
-    FOREIGN KEY(ArtistID) REFERENCES [dbo].[Dim_Artist](ArtistId),
-    FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
-    FOREIGN KEY(MediaTypeID) REFERENCES [dbo].[Dim_MediaType](MediaTypeId),*/
 
 );
 

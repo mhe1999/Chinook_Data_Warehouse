@@ -85,11 +85,8 @@ END
 
 
 
-
-select * FROM TrackAndLocation
-
 GO
-CREATE OR ALTER PROCEDURE ETL_OP_firstLoadDailyFact
+CREATE OR ALTER PROCEDURE ETL_OP_DailyFact
 AS
 BEGIN
 
@@ -109,20 +106,32 @@ WHILE @CurrDate <= @EndDate
             TRUNCATE TABLE [DataWarehouse].[dbo].tmp_CurrDate_all_Track 
             TRUNCATE TABLE [DataWarehouse].[dbo].[tmp_LastDay_tracks]
             
+            INSERT into [DataWarehouse].[dbo].[LogTable]
+            VALUES('[DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]', 'Truncacte tmp_CurrDate_all_Track', NULL, GETDATE())
+
+            INSERT into [DataWarehouse].[dbo].[LogTable]
+            VALUES('[DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]', 'Truncate tmp_LastDay_tracks', NULL, GETDATE())
+
             insert into [DataWarehouse].[dbo].[tmp_CurrDate_all_Track]
             select TrackID, LocationID, COUNT(*) AS NumOfPlayBack 
             FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]
             WHERE TranDate >= @CurrDate AND TranDate< @CurrDate + 1 
             GROUP BY TrackID, LocationID
 
+            INSERT into [DataWarehouse].[dbo].[LogTable]
+            VALUES('[DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]', 'Insert Today Data to temp table', NULL, GETDATE())
+
             if not exists(select * 
                             from [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback] 
                             WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1)
-                
+                            
                 BEGIN --first load
                     INSERT INTO [DataWarehouse].[dbo].[tmp_LastDay_tracks]
                     SELECT TrackId, LocationID, 0, 0, 0, 0, 0
                     FROM TrackAndLocation
+
+                    INSERT into [DataWarehouse].[dbo].[LogTable]
+                    VALUES('[DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]', 'Insert Yesterday Data to temp table(first load)', NULL, GETDATE())
 
                 END
 
@@ -135,6 +144,10 @@ WHILE @CurrDate <= @EndDate
                                     LEFT JOIN  [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback] as FD 
                                             ON TL.TrackID = FD.TrackID AND TL.LocationID = FD.LocationID
                     WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1
+
+                    INSERT into [DataWarehouse].[dbo].[LogTable]
+                    VALUES('[DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]', 'Insert Yesterday Data to temp table(incremental)', NULL, GETDATE())
+
                 END
 
      
@@ -166,6 +179,9 @@ WHILE @CurrDate <= @EndDate
 
 
         
+            INSERT into [DataWarehouse].[dbo].[LogTable]
+            VALUES('[DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]', 'Insert Data to Facttable', NULL, GETDATE())
+
         SET @CurrDate = @CurrDate + 1;
 
         END
@@ -174,7 +190,17 @@ WHILE @CurrDate <= @EndDate
 
 END
 
+GO
+CREATE OR ALTER PROCEDURE ETL_OP_firstLoadDailyFact
+AS 
+BEGIN
+    TRUNCATE TABLE [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
 
+    INSERT into [DataWarehouse].[dbo].[LogTable]
+    VALUES('[DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]', 'Truncate table first load', NULL, GETDATE())
+    EXEC ETL_OP_DailyFact
+
+END
 
 
 
@@ -190,6 +216,12 @@ BEGIN
     DECLARE @TempDate INT;
     SET @TempDate = (select max(TranDate) from [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback])
     TRUNCATE TABLE [DataWarehouse].[dbo].[FactACCOnlinePlayback]
+
+    INSERT into [DataWarehouse].[dbo].[LogTable]
+    VALUES('[DataWarehouse].[dbo].[FactACCOnlinePlayback]', 'Truncate ACC fact', (select FullDateAlternateKey
+            from Dim_Date
+            where TimeKey= @TempDate), GETDATE())
+
     INSERT INTO [DataWarehouse].[dbo].[FactACCOnlinePlayback]
     SELECT TrackID, AlbumID, GenreID, ArtistID, LocationID, MediaTypeID, MaxNum, MinNum, NumberOfPlaybackUntillToday, AverageNumOfPlaybackUntillToday
     FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
@@ -222,6 +254,7 @@ END
 EXEC ETL_OP_firstLoadTransFact
 exec ETL_OP_incrementalTransFact
 exec ETL_OP_firstLoadDailyFact
+EXEC ETL_OP_DailyFact
 EXEC ETL_OP_ACCFact
 
 --TRUNCATE TABLE [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
@@ -230,19 +263,3 @@ select * FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]
 select * FROM [DataWarehouse].[dbo].[LogTable]
 SELECT * FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback] ORDER by TrackID,LocationID
 select * FROM [DataWarehouse].[dbo].[FactACCOnlinePlayback] WHERE AverageNumOfPlayback > 0
-
-
-
-
-
-/*
-SELECT *
-FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
-WHERE TranDate = 20130120 AND NumberOfPlaybackToday > 0
-ORDER by TrackID,LocationID
-
-
-select *
-from [DataWarehouse].[dbo].FactTransactionOnlinePlayback
-WHERE  LocationID=2 AND TrackID = 10
-*/
