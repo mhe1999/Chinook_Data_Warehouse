@@ -277,6 +277,10 @@ BEGIN
     FROM [DataWarehouse].[dbo].[Dim_Track] as DT inner join [StorageArea].[dbo].[SA_Track] as ST on (DT.TrackId=ST.TrackId)
     WHERE DT.UnitPrice<>ST.UnitPrice)
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Track]', 'Update flag unit price', NULL, GETDATE())
+
+
   INSERT INTO DataWarehouse.dbo.Dim_Track
     ([TrackId] ,[Name],[AlbumId],[AlbumTitle],[ArtistId],[ArtistName],[MediaTypeId]
     ,[MediaTypeName],[GenreId],[GenreName],[Composer],[Milliseconds],[Bytes],[UnitPrice],[AddDate],[Start_Date_UnitPrice],[End_Date_UnitPrice],[Current_Flag_UnitPrice])
@@ -290,6 +294,9 @@ BEGIN
   FROM [DataWarehouse].[dbo].[Dim_Track] as DT inner join [StorageArea].[dbo].[SA_Track] as ST on (DT.TrackId=ST.TrackId)
   WHERE DT.UnitPrice<>ST.UnitPrice)
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Track]', 'Insert updated data', NULL, GETDATE())
+
   INSERT INTO DataWarehouse.dbo.Dim_Track
     ([TrackId] ,[Name],[AlbumId],[AlbumTitle],[ArtistId],[ArtistName],[MediaTypeId]
     ,[MediaTypeName],[GenreId],[GenreName],[Composer],[Milliseconds],[Bytes],[UnitPrice],[AddDate],[Start_Date_UnitPrice],[End_Date_UnitPrice],[Current_Flag_UnitPrice])
@@ -301,6 +308,11 @@ BEGIN
     inner join StorageArea.dbo.SA_Artist as Ar on (A.ArtistId=Ar.ArtistId)
   WHERE TrackId not in (SELECT TrackId
   FROM [DataWarehouse].[dbo].[Dim_Track])
+
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Track]', 'Insert new tracks', NULL, GETDATE())
+
+
 END
 
 
@@ -332,6 +344,10 @@ BEGIN
 							 FROM [DataWarehouse].dbo.Dim_Employee
 							 WHERE [Current_Flag] = 1)
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Employee]', 'insert new employees to dimension', NULL, GETDATE())
+
+
 
 	DROP TABLE IF EXISTS #TEMP
 	SELECT SE.EmployeeId, SE.LastName, SE.FirstName, SE.Title, SE.ReportsTo, SE.BirthDate, SE.HireDate, SE.[Address], SE.City, SE.[State], SE.Country, SE.PostalCode, SE.Phone, SE.Fax, SE.Email, GETDATE() AS [Start_date]   , CONVERT(datetime, NULL) AS [End_Dte]  , 1 AS [Current_Flag],
@@ -344,15 +360,23 @@ BEGIN
 	FROM [StorageArea].[dbo].[SA_Employee] SE INNER JOIN [DataWarehouse].dbo.Dim_Employee DE ON (SE.EmployeeId = DE.EmployeeId AND DE.Current_Flag = 1)
 	WHERE DE.ReportsTo != SE.ReportsTo OR DE.Title != SE.Title
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Employee]', 'insert Changed data to TEMP (SCD2)', NULL, GETDATE())
+
 	UPDATE [DataWarehouse].dbo.Dim_Employee
 	SET [End_Dte] = DATEADD(day, -1, GETDATE()), Current_Flag = 0
 	WHERE Current_Flag = 1 AND EmployeeId IN (SELECT EmployeeId
 											FROM #TEMP)
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Employee]', 'Update current flag and enddate for old data', NULL, GETDATE())
+
 	INSERT Dim_Employee(EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate,    HireDate,    [Address],    City,    [State],    Country,    PostalCode,    Phone,    Fax,    Email, [Start_date], [End_Dte], [Current_Flag], [Change_Flag] )
 	SELECT EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate, HireDate, [Address], City, [State], Country, PostalCode, Phone, Fax, Email, [Start_date]   , [End_Dte]     , [Current_Flag], Change_Flag
 	FROM #TEMP
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Employee]', 'insert from temp to dimension', NULL, GETDATE())
 	
 	DROP TABLE IF EXISTS #SCD1
 	SELECT	DE.Id,
@@ -390,8 +414,15 @@ BEGIN
 			SE.Fax != DE.Fax OR
 			SE.Email != DE.Email
 
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Employee]', 'Insert part of SCD1 for dimension', NULL, GETDATE())
+
 	Delete FROM Dim_Employee
 			WHERE Id in (select Id from #SCD1)
+
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Employee]', 'Delete part of SCD1 for dimension', NULL, GETDATE())
+
 
 	SET IDENTITY_INSERT [DataWarehouse].[dbo].Dim_Employee ON
 	INSERT INTO Dim_Employee (Id,
@@ -435,6 +466,9 @@ BEGIN
 			[Current_Flag],
 			[Change_Flag]
 		FROM #SCD1
+  
+  INSERT into [DataWarehouse].[dbo].[LogTable]
+  VALUES('[DataWarehouse].[dbo].[Dim_Employee]', 'Insert from SCD1 to dimension', NULL, GETDATE())
 
 	SET IDENTITY_INSERT [DataWarehouse].[dbo].Dim_Employee OFF
 

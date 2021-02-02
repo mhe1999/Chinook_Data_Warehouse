@@ -121,11 +121,20 @@ BEGIN
         TRUNCATE TABLE [DataWarehouse].[dbo].tmp_CurrDate_all_Votes
         TRUNCATE TABLE [DataWarehouse].[dbo].[tmp_LastDay_Votes]
 
+        INSERT into [DataWarehouse].[dbo].[LogTable]
+        VALUES('[DataWarehouse].[dbo].[FactDailySnapshotRating]', 'Truncacte tmp_CurrDate_all_Votes', NULL, GETDATE())
+
+        INSERT into [DataWarehouse].[dbo].[LogTable]
+        VALUES('[DataWarehouse].[dbo].[FactDailySnapshotRating]', 'Truncate tmp_LastDay_Votes', NULL, GETDATE())
+
         insert into [DataWarehouse].[dbo].[tmp_CurrDate_all_Votes]
         select TrackID, LocationID, COUNT(*) AS NumOfVotes, AVG(Score) 
         FROM [DataWarehouse].[dbo].[FactTransactionRating]
         WHERE TranDate >= @CurrDate AND TranDate< @CurrDate + 1
         GROUP BY TrackID, LocationID
+
+        INSERT into [DataWarehouse].[dbo].[LogTable]
+        VALUES('[DataWarehouse].[dbo].[FactDailySnapshotRating]', 'Insert Today Data to temp table', NULL, GETDATE())
 
         if not exists(select *
         from [DataWarehouse].[dbo].[FactDailySnapshotRating]
@@ -136,6 +145,9 @@ BEGIN
             INSERT INTO [DataWarehouse].[dbo].[tmp_LastDay_Votes]
             SELECT TrackId, LocationID, 0, 0, 0
             FROM TrackAndLocation
+
+            INSERT into [DataWarehouse].[dbo].[LogTable]
+            VALUES('[DataWarehouse].[dbo].[FactDailySnapshotRating]', 'Insert Yesterday Data to temp table(first load)', NULL, GETDATE())
 
         END
 
@@ -149,6 +161,12 @@ BEGIN
                 LEFT JOIN [DataWarehouse].[dbo].[FactDailySnapshotRating] as FD
                 ON TL.TrackID = FD.TrackID AND TL.LocationID = FD.LocationID
             WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1
+    
+    
+            INSERT into [DataWarehouse].[dbo].[LogTable]
+            VALUES('[DataWarehouse].[dbo].[FactDailySnapshotRating]', 'Insert Yesterday Data to temp table(incremental)', NULL, GETDATE())
+
+
         END
 
 
@@ -172,6 +190,11 @@ BEGIN
             INNER JOIN [DataWarehouse].[dbo].[Dim_Track] AS T ON TL.TrackID = T.Id
 
 
+        INSERT into [DataWarehouse].[dbo].[LogTable]
+        VALUES('[DataWarehouse].[dbo].[FactDailySnapshotRating]', 'Insert Data to Facttable', NULL, GETDATE())
+
+ 
+
         SET @CurrDate = @CurrDate + 1;
 
     END
@@ -180,6 +203,21 @@ BEGIN
 
 END
 
+
+------------------first load-------------------
+GO
+CREATE OR ALTER PROCEDURE ETL_Rating_firstLoadDailyFact
+AS
+BEGIN
+
+    TRUNCATE table [DataWarehouse].[dbo].[FactDailySnapshotRating]
+
+    INSERT into [DataWarehouse].[dbo].[LogTable]
+    VALUES('[DataWarehouse].[dbo].[FactDailySnapshotRating]', 'Truncate table for first load', NULL, GETDATE())
+
+    EXEC ETL_Rating_DailyFact
+
+END
 
 
 -------------------------------
@@ -215,7 +253,7 @@ BEGIN
 END
 
 
-
+SELECT * from Dim_Date
 
 
 
@@ -223,6 +261,7 @@ END
 
 exec ETL_Rating_firstLoadTransFact
 exec ETL_Rating_incrementalTransFact
+EXEC ETL_Rating_firstLoadDailyFact
 EXEC ETL_Rating_DailyFact
 EXEC ETL_Sale_ACCFact
 
@@ -230,12 +269,14 @@ EXEC ETL_Sale_ACCFact
 
 
 select * FROM [DataWarehouse].[dbo].[FactTransactionRating]
-TRUNCATE TABLE [DataWarehouse].[dbo].[FactTransactionRating]
+--TRUNCATE TABLE [DataWarehouse].[dbo].[FactTransactionRating]
 
 SELECT * FROM [DataWarehouse].[dbo].[tmp_CurrDate_all_Votes]
 SELECT * FROM [DataWarehouse].[dbo].[FactDailySnapshotRating]
 WHERE TranDate =20130120 and Number_Of_Votes_untillToday >0
-TRUNCATE table [DataWarehouse].[dbo].[FactDailySnapshotRating]
+--TRUNCATE table [DataWarehouse].[dbo].[FactDailySnapshotRating]
 
 select *
 from DataWarehouse.dbo.FactACCRating
+
+SELECT * from LogTable
