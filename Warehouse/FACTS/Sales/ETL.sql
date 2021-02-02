@@ -216,11 +216,21 @@ BEGIN
     DECLARE @TempDate INT;
     SET @TempDate = (select max(TranDate)
     from [DataWarehouse].[dbo].[FactDailySnapshotSale])
+
     TRUNCATE TABLE [DataWarehouse].[dbo].[FactACCSale]
+    INSERT into [DataWarehouse].[dbo].[LogTable]
+    VALUES('[DataWarehouse].[dbo].[FactACCSale]', 'TRUNCATE ACC fact', (select FullDateAlternateKey from Dim_Date where TimeKey= @TempDate), GETDATE())
+
     INSERT INTO [DataWarehouse].[dbo].[FactACCSale](TrackID, AlbumID, SupportID,GenreID, ArtistID, LocationID, MediaTypeID, sumSale, numberofSale, averageSale, MaxNum, MinNum)
     SELECT TrackID, AlbumID, SupportID,GenreID, ArtistID, LocationID, MediaTypeID,  sumSaletoday, numberofSaleToday, averageSaleUntillToday, MaxNum, MinNum
     FROM [DataWarehouse].[dbo].[FactDailySnapshotSale]
     WHERE TranDate = @TempDate
+
+    INSERT into [DataWarehouse].[dbo].[LogTable]
+    VALUES('[DataWarehouse].[dbo].[FactACCSale]', 'Load Data ACC fact', (select FullDateAlternateKey
+            from Dim_Date
+            where TimeKey= @TempDate), GETDATE())
+
 END
 
 
@@ -240,7 +250,9 @@ select * from [DataWarehouse].[dbo].[tmp_CurrDate_all_Sale]
 select * from [DataWarehouse].[dbo].tmp_LastDay_Sales
 select * from [DataWarehouse].[dbo].[FactTransactionSale]
 select * from [DataWarehouse].[dbo].[FactDailySnapshotSale]
+
 where sumSaletoday > 0
 
+select * from [DataWarehouse].[dbo].[LogTable]
 select * from  [DataWarehouse].[dbo].[FactACCSale]
 WHERE numberofSale>0
