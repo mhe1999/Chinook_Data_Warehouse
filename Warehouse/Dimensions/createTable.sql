@@ -181,3 +181,13 @@ CREATE TABLE [dbo].[Dim_Employee]
 	
 );
 
+
+CREATE TABLE [DataWarehouse].[dbo].[LogTable]
+(
+
+    ID BIGINT PRIMARY KEY IDENTITY(1,1),
+    [TableName] NVARCHAR(210) NOT NULL,
+    Descriptions NVARCHAR(210) NOT NULL,
+    CurrDate date,
+    LogDate DATETIME,
+);

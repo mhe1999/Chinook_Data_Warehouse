@@ -114,15 +114,6 @@ CREATE TABLE [DataWarehouse].[dbo].[tmp_LastDay_tracks]
 
 );
 
-CREATE TABLE [DataWarehouse].[dbo].[LogTable](
-
-    ID BIGINT PRIMARY KEY IDENTITY(1,1),
-    [TableName] NVARCHAR(210) NOT NULL,
-    Descriptions NVARCHAR(210) NOT NULL,
-    CurrDate date,
-    LogDate DATETIME,
-);
-
 GO
 CREATE or ALTER view TrackAndLocation
 as
