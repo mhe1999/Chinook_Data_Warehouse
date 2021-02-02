@@ -6,7 +6,17 @@ CREATE OR ALTER PROCEDURE ETL_Rating_firstLoadTransFact
 AS
 BEGIN
 
---    TRUNCATE TABLE [DataWarehouse].[dbo].[FactTransactionOnlinePlayback];
+    TRUNCATE TABLE [DataWarehouse].[dbo].[FactTransactionRating];
+
+    DECLARE @EndDate date;
+    DECLARE @CurrDate date;
+
+    SET @EndDate = (SELECT MAX(ScoreDate)
+                    FROM [StorageArea].[dbo].[SA_Rating])
+    SET @CurrDate = (SELECT MIN(ScoreDate)
+                    FROM [StorageArea].[dbo].[SA_Rating])
+    WHILE @CurrDate <= @EndDate
+    BEGIN
 
     INSERT INTO [DataWarehouse].[dbo].[FactTransactionRating]
         ( [CustomerID], [CustomerIDN], [TrackID], [TrackIDN], [AlbumID], [GenreID], [ArtistID], [LocationID], [MediaTypeID],[TranDate], Score)
@@ -19,10 +29,15 @@ BEGIN
         inner join [DataWarehouse].[dbo].Dim_MediaType AS DWM on DWM.MediaTypeId = DWT.MediaTypeId
         inner join [DataWarehouse].[dbo].Dim_Location AS DWL ON DWL.City = DWC.City AND DWL.Country = DWC.Country
         INNER JOIN [DataWarehouse].[dbo].Dim_Date AS DWD ON YEAR(DWD.FullDateAlternateKey) =  YEAR(SAP.ScoreDate) AND MONTH(DWD.FullDateAlternateKey) =  MONTH(SAP.ScoreDate) AND DAY(DWD.FullDateAlternateKey) =  DAY(SAP.ScoreDate)
+        WHERE SAP.ScoreDate = @CurrDate
+
+    SET @CurrDate = DATEADD(day, 1, @Currdate)
 /*
     INSERT into [DataWarehouse].[dbo].[LogTable]
     VALUES
         ('[DataWarehouse].[dbo].[FactTransactionOnlinePlayback]', 'FirstLoad, joined from Dim_Customer, Dim_Track, Dim_Album, Dim_Artist, Dim_Genre, Dim_MediaType, Dim_Location, Dim_Date', NULL, GETDATE())*/
+
+    END
 END
 
 
