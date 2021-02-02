@@ -45,6 +45,7 @@ CREATE TABLE dbo.FactDailySnapshotRating
 	---Measures
 	Track_AVG_Score DECIMAL(2,1),
 	Number_Of_Votes int,
+    Number_Of_Votes_untillToday int,
 /*
     FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
     FOREIGN KEY(TrackID) REFERENCES [dbo].[Dim_Track](Id),
@@ -84,3 +85,32 @@ CREATE TABLE dbo.FactACCRating(
     FOREIGN KEY(MediaTypeID) REFERENCES [dbo].[Dim_MediaType](MediaTypeId),
 */
 );
+
+
+
+
+
+
+
+
+CREATE TABLE [DataWarehouse].[dbo].tmp_CurrDate_all_Votes
+(
+    TrackID BIGINT,
+    LocationID INT,
+    NumOfVotes INT,
+    AVGofVotes DECIMAL(2,1),
+    PRIMARY KEY(TrackID, LocationID),
+);
+
+
+
+CREATE TABLE [DataWarehouse].[dbo].tmp_LastDay_Votes
+(
+    TrackID BIGINT,
+    LocationID INT,
+    NumOfVotes INT,
+    NumOfVotesUntillToday INT,
+    AVGofVotes DECIMAL(2,1),
+    PRIMARY KEY(TrackID, LocationID),
+);
+

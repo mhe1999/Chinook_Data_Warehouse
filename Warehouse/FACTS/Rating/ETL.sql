@@ -73,15 +73,109 @@ END
 
 
 
+------------------------
+---DailyFact------------
+------------------------
+
+GO
+CREATE OR ALTER PROCEDURE ETL_Rating_DailyFact
+AS
+BEGIN
+
+    DECLARE @EndDate INT;
+    DECLARE @TempDATE INT;
+    DECLARE @StartDate INT;
+    DECLARE @CurrDate INT;
+
+    SET @EndDate = (SELECT MAX(TranDate)
+    FROM [DataWarehouse].[dbo].[FactTransactionRating]);
+    SET @TempDATE = (SELECT MIN(TranDate)
+    FROM [DataWarehouse].[dbo].[FactTransactionRating])
+--    SET @StartDate = @TempDATE;
+    SET @CurrDate =(select isnull(max(TranDate),@TempDATE - 1)
+    FROM [DataWarehouse].[dbo].[FactDailySnapshotRating]);
+
+    SET @CurrDate = @CurrDate + 1;
+
+    WHILE @CurrDate <= @EndDate
+        BEGIN
+        TRUNCATE TABLE [DataWarehouse].[dbo].tmp_CurrDate_all_Votes
+        TRUNCATE TABLE [DataWarehouse].[dbo].[tmp_LastDay_Votes]
+
+        insert into [DataWarehouse].[dbo].[tmp_CurrDate_all_Votes]
+        select TrackID, LocationID, COUNT(*) AS NumOfVotes, AVG(Score) 
+        FROM [DataWarehouse].[dbo].[FactTransactionRating]
+        WHERE TranDate >= @CurrDate AND TranDate< @CurrDate + 1
+        GROUP BY TrackID, LocationID
+
+        if not exists(select *
+        from [DataWarehouse].[dbo].[FactDailySnapshotRating]
+        WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1)
+                
+        BEGIN
+            --first load
+            INSERT INTO [DataWarehouse].[dbo].[tmp_LastDay_Votes]
+            SELECT TrackId, LocationID, 0, 0, 0
+            FROM TrackAndLocation
+
+        END
+
+
+            ELSE
+                BEGIN
+            --incremental
+            INSERT INTO [DataWarehouse].[dbo].[tmp_LastDay_Votes]
+            SELECT TL.TrackID, TL.LocationID, isnull(FD.Number_Of_Votes, 0), isnull(FD.Number_Of_Votes_untillToday, 0), isnull(FD.Track_AVG_Score, 0)
+            FROM TrackAndLocation as TL
+                LEFT JOIN [DataWarehouse].[dbo].[FactDailySnapshotRating] as FD
+                ON TL.TrackID = FD.TrackID AND TL.LocationID = FD.LocationID
+            WHERE TranDate < @CurrDate AND TranDate >= @CurrDate - 1
+        END
+
+
+
+        insert into [DataWarehouse].[dbo].[FactDailySnapshotRating]
+            (TrackId, LocationID, GenreId, AlbumId, ArtistId, MediaTypeId, Number_Of_Votes, Number_Of_Votes_untillToday, Track_AVG_Score, TranDate)
+        SELECT TL.TrackId, TL.LocationID, T.GenreId, T.AlbumId, T.ArtistId, T.MediaTypeId,
+
+            ISNULL(CT.NumOfVotes, 0) as NumOfVotes,
+            ISNULL(CT.NumOfVotes, 0) + TL.NumOfVotesUntillToday as NumberOfVotesUntillToday,
+            CASE WHEN ISNULL(CT.NumOfVotes, 0) = 0 AND TL.NumOfVotesUntillToday = 0 THEN 0
+                 WHEN ISNULL(CT.NumOfVotes, 0) = 0 AND TL.NumOfVotesUntillToday <> 0 THEN TL.AVGofVotes
+                 WHEN ISNULL(CT.NumOfVotes, 0) <> 0 AND TL.NumOfVotesUntillToday = 0 THEN ISNULL(CT.AVGofVotes, 0)
+                 ELSE ((ISNULL(CT.NumOfVotes, 0) * ISNULL(CT.AVGofVotes, 0)) + (TL.AVGofVotes * TL.NumOfVotesUntillToday) )/(ISNULL(CT.NumOfVotes, 0) + TL.NumOfVotesUntillToday) END AS AverageNumOfScore
+            , @CurrDate
+
+
+        FROM [DataWarehouse].[dbo].[tmp_LastDay_Votes] as TL
+            LEFT JOIN [DataWarehouse].[dbo].[tmp_CurrDate_all_Votes] as CT
+            ON TL.TrackId = CT.TrackID AND TL.LocationID = CT.LocationID
+            INNER JOIN [DataWarehouse].[dbo].[Dim_Track] AS T ON TL.TrackID = T.Id
+
+
+        SET @CurrDate = @CurrDate + 1;
+
+    END
+
+
+
+END
 
 
 
 
 
+EXEC ETL_Rating_DailyFact
 
 
 
 exec ETL_Rating_firstLoadTransFact
 exec ETL_Rating_incrementalTransFact
+
 select * FROM [DataWarehouse].[dbo].[FactTransactionRating]
 TRUNCATE TABLE [DataWarehouse].[dbo].[FactTransactionRating]
+
+SELECT * FROM [DataWarehouse].[dbo].[tmp_CurrDate_all_Votes]
+SELECT * FROM [DataWarehouse].[dbo].[FactDailySnapshotRating]
+WHERE TranDate =20130120 and Number_Of_Votes_untillToday >0
+TRUNCATE table [DataWarehouse].[dbo].[FactDailySnapshotRating]
