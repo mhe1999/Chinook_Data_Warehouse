@@ -163,14 +163,39 @@ END
 
 
 
+-------------------------------
+------------------------------
+-----------ACC-----------------
+-------------------------------
+-------------------------------
+GO
+CREATE OR ALTER PROCEDURE ETL_Sale_ACCFact
+AS
+BEGIN
+    DECLARE @TempDate INT;
+    SET @TempDate = (select max(TranDate)
+    from [DataWarehouse].[dbo].[FactDailySnapshotRating])
+    TRUNCATE TABLE [DataWarehouse].[dbo].[FactACCRating]
+    INSERT INTO [DataWarehouse].[dbo].[FactACCRating]
+    SELECT TrackID, AlbumID, GenreID, ArtistID, LocationID, MediaTypeID, Track_AVG_Score, Number_Of_Votes_untillToday
+    FROM [DataWarehouse].[dbo].[FactDailySnapshotRating]
+    WHERE TranDate = @TempDate
+END
 
 
-EXEC ETL_Rating_DailyFact
+
+
+
 
 
 
 exec ETL_Rating_firstLoadTransFact
 exec ETL_Rating_incrementalTransFact
+EXEC ETL_Rating_DailyFact
+EXEC ETL_Sale_ACCFact
+
+
+
 
 select * FROM [DataWarehouse].[dbo].[FactTransactionRating]
 TRUNCATE TABLE [DataWarehouse].[dbo].[FactTransactionRating]
@@ -179,3 +204,6 @@ SELECT * FROM [DataWarehouse].[dbo].[tmp_CurrDate_all_Votes]
 SELECT * FROM [DataWarehouse].[dbo].[FactDailySnapshotRating]
 WHERE TranDate =20130120 and Number_Of_Votes_untillToday >0
 TRUNCATE table [DataWarehouse].[dbo].[FactDailySnapshotRating]
+
+select *
+from DataWarehouse.dbo.FactACCRating

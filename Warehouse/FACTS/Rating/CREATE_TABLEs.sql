@@ -72,10 +72,13 @@ CREATE TABLE dbo.FactACCRating(
 	---Measures
 	Track_AVG_Score DECIMAL(2,1),
 	Number_Of_Votes int,
-	Last_30Day_Average DECIMAL(2,1),
+
+/*	Last_30Day_Average DECIMAL(2,1),
 	Max_Average_Rate DECIMAL(2,1),
+    MaxAvgDate INT,
 	Min_Average_Rate DECIMAL(2,1),
-/*
+    MinAvgDate INT
+
     FOREIGN KEY(LocationID) REFERENCES [dbo].[Dim_Location](Id),
     FOREIGN KEY(TrackID) REFERENCES [dbo].[Dim_Track](Id),
     FOREIGN KEY(AlbumID) REFERENCES [dbo].[Dim_Album](AlbumId),
