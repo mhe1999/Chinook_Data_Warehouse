@@ -29,7 +29,7 @@ WHILE @CurrDate <= @EndDate
                         inner join [DataWarehouse].[dbo].Dim_Location AS DWL ON DWL.City = DWC.City AND DWL.Country = DWC.Country
                         INNER JOIN [DataWarehouse].[dbo].Dim_Date AS DWD ON YEAR(DWD.FullDateAlternateKey) =  YEAR(SAP.PlayDate)  AND  MONTH(DWD.FullDateAlternateKey) =  MONTH(SAP.PlayDate)   AND DAY(DWD.FullDateAlternateKey) =  DAY(SAP.PlayDate)                                       
                 WHERE SAP.PlayDate = @CurrDate
-            INSERT into [DataWarehouse].[dbo].[LogTable] VALUES ('[DataWarehouse].[dbo].[FactTransactionOnlinePlayback]','FirstLoad, joined from Dim_Customer, Dim_Track, Dim_Album, Dim_Artist, Dim_Genre, Dim_MediaType, Dim_Location, Dim_Date', NULL,GETDATE())
+            INSERT into [DataWarehouse].[dbo].[LogTable] VALUES ('[DataWarehouse].[dbo].[FactTransactionOnlinePlayback]','FirstLoad, joined from Dim_Customer, Dim_Track, Dim_Album, Dim_Artist, Dim_Genre, Dim_MediaType, Dim_Location, Dim_Date', @CurrDate,GETDATE())
 
             SET @CurrDate = DATEADD(day, 1, @Currdate)
 
@@ -100,10 +100,9 @@ DECLARE @CurrDate INT;
 
 SET @EndDate = (SELECT MAX(TranDate)FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback]);
 SET @TempDATE = (SELECT MIN(TranDate)FROM [DataWarehouse].[dbo].[FactTransactionOnlinePlayback])
+SET @StartDate = @TempDATE;
 SET @CurrDate =(select isnull(max(TranDate),@TempDATE - 1) FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]);
-
 SET @CurrDate = @CurrDate + 1;
-SET @StartDate = @CurrDate;
 
 WHILE @CurrDate <= @EndDate
         BEGIN        
@@ -190,11 +189,15 @@ AS
 BEGIN
     DECLARE @TempDate INT;
     SET @TempDate = (select max(TranDate) from [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback])
-    TRUNCATE TABLE [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
+    TRUNCATE TABLE [DataWarehouse].[dbo].[FactACCOnlinePlayback]
     INSERT INTO [DataWarehouse].[dbo].[FactACCOnlinePlayback]
     SELECT TrackID, AlbumID, GenreID, ArtistID, LocationID, MediaTypeID, MaxNum, MinNum, NumberOfPlaybackUntillToday, AverageNumOfPlaybackUntillToday
     FROM [DataWarehouse].[dbo].[FactDailySnapshotOnlinePlayback]
     WHERE TranDate = @TempDate
+    
+    INSERT into [DataWarehouse].[dbo].[LogTable]
+    VALUES('[DataWarehouse].[dbo].[FactACCOnlinePlayback]', 'ACC Load data', (select FullDateAlternateKey from Dim_Date where TimeKey= @TempDate), GETDATE())
+
 END
 
 
